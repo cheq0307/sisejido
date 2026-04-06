@@ -9,7 +9,7 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up()
+public function up()
 {
     Schema::create('infoadministrativa', function (Blueprint $table) {
         $table->id('id_InfAdmin');
@@ -17,13 +17,9 @@ return new class extends Migration
         $table->string('claveNucleoAgrario');
         $table->string('comunidad');
         $table->date('fechaExpedicion');
-
         $table->unsignedBigInteger('idParcela');
-        $table->foreign('idParcela')->references('idParcela')->on('parcelas');
     });
 }
-
-
     /**
      * Reverse the migrations.
      */

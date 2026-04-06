@@ -11,14 +11,16 @@ return new class extends Migration
      */
 public function up()
 {
-    Schema::create('infoadministrativa', function (Blueprint $table) {
-        $table->id('id_InfAdmin');
-        $table->string('num_inscripcionRAN');
-        $table->string('claveNucleoAgrario');
-        $table->string('comunidad');
-        $table->date('fechaExpedicion');
-        $table->unsignedBigInteger('idParcela');
-    });
+    if (!Schema::hasTable('infoadministrativa')) {
+        Schema::create('infoadministrativa', function (Blueprint $table) {
+            $table->id('id_InfAdmin');
+            $table->string('num_inscripcionRAN');
+            $table->string('claveNucleoAgrario');
+            $table->string('comunidad');
+            $table->date('fechaExpedicion');
+            $table->unsignedBigInteger('idParcela');
+        });
+    }
 }
     /**
      * Reverse the migrations.

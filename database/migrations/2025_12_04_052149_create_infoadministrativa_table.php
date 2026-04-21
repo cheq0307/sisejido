@@ -9,21 +9,19 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up()
+public function up()
 {
-    Schema::create('infoadministrativa', function (Blueprint $table) {
-        $table->id('id_InfAdmin');
-        $table->string('num_inscripcionRAN');
-        $table->string('claveNucleoAgrario');
-        $table->string('comunidad');
-        $table->date('fechaExpedicion');
-
-        $table->unsignedBigInteger('idParcela');
-        $table->foreign('idParcela')->references('idParcela')->on('parcelas');
-    });
+    if (!Schema::hasTable('infoadministrativa')) {
+        Schema::create('infoadministrativa', function (Blueprint $table) {
+            $table->id('id_InfAdmin');
+            $table->string('num_inscripcionRAN');
+            $table->string('claveNucleoAgrario');
+            $table->string('comunidad');
+            $table->date('fechaExpedicion');
+            $table->unsignedBigInteger('idParcela');
+        });
+    }
 }
-
-
     /**
      * Reverse the migrations.
      */

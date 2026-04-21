@@ -9,22 +9,22 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up()
+public function up()
 {
-    Schema::create('colindancias', function (Blueprint $table) {
-        $table->id('idColindancia');
-        $table->string('norte');
-        $table->string('sur');
-        $table->string('este');
-        $table->string('oeste');
-        $table->string('noreste');
-        $table->string('noroeste');
-        $table->string('sureste');
-        $table->string('suroeste');
-
-        $table->unsignedBigInteger('idParcela');
-        $table->foreign('idParcela')->references('idParcela')->on('parcelas');
-    });
+    if (!Schema::hasTable('colindancias')) {
+        Schema::create('colindancias', function (Blueprint $table) {
+            $table->id('idColindancia');
+            $table->string('norte');
+            $table->string('sur');
+            $table->string('este');
+            $table->string('oeste');
+            $table->string('noreste');
+            $table->string('noroeste');
+            $table->string('sureste');
+            $table->string('suroeste');
+            $table->unsignedBigInteger('idParcela');
+        });
+    }
 }
 
 

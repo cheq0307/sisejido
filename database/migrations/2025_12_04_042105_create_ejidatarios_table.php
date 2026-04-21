@@ -9,28 +9,27 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up()
+public function up()
 {
-    Schema::create('ejidatarios', function (Blueprint $table) {
-        $table->id('idEjidatario');
-        $table->string('nombre', 20);
-        $table->string('apellidoPaterno', 20);
-        $table->string('apellidoMaterno', 20);
-        $table->date('fechaNacimiento');
-        $table->string('curp', 20);
-        $table->string('rfc', 15);
-        $table->string('claveElector', 20);
-        $table->string('direccion', 50);
-        $table->integer('telefono');
-        $table->string('email', 30);
-        $table->date('fechaIngreso');
-        $table->integer('numeroEjidatario');
-        
-        $table->unsignedBigInteger('idEstatus');
-        $table->foreign('idEstatus')->references('idEstatus')->on('estatus');
-    });
+    if (!Schema::hasTable('ejidatarios')) {
+        Schema::create('ejidatarios', function (Blueprint $table) {
+            $table->id('idEjidatario');
+            $table->string('nombre', 20);
+            $table->string('apellidoPaterno', 20);
+            $table->string('apellidoMaterno', 20);
+            $table->date('fechaNacimiento');
+            $table->string('curp', 20);
+            $table->string('rfc', 15);
+            $table->string('claveElector', 20);
+            $table->string('direccion', 50);
+            $table->integer('telefono');
+            $table->string('email', 30);
+            $table->date('fechaIngreso');
+            $table->integer('numeroEjidatario');
+            $table->unsignedBigInteger('idEstatus');
+        });
+    }
 }
-
 
     /**
      * Reverse the migrations.

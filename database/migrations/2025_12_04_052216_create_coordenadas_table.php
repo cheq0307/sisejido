@@ -9,17 +9,17 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up()
+public function up()
 {
-    Schema::create('coordenadas', function (Blueprint $table) {
-        $table->id('idCoordenada');
-        $table->unsignedBigInteger('idParcela');
-        $table->string('punto', 10);
-        $table->string('coordenadaX', 50);
-        $table->string('coordenadaY', 50);
-
-        $table->foreign('idParcela')->references('idParcela')->on('parcelas');
-    });
+    if (!Schema::hasTable('coordenadas')) {
+        Schema::create('coordenadas', function (Blueprint $table) {
+            $table->id('idCoordenada');
+            $table->unsignedBigInteger('idParcela');
+            $table->string('punto', 10);
+            $table->string('coordenadaX', 50);
+            $table->string('coordenadaY', 50);
+        });
+    }
 }
 
     /**

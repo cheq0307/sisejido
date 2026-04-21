@@ -81,3 +81,20 @@ Route::get('salidas/editar/{id}', [SalidaController::class, 'edit'])->name('sali
 Route::put('salidas/actualizar/{id}', [SalidaController::class, 'update'])->name('salidas.update');
 Route::delete('salidas/eliminar/{id}', [SalidaController::class, 'destroy'])->name('salidas.destroy');
 Route::get('reporte/entradas-salidas',[SalidaController::class, 'reporteEyS'])->name('reporte.eys');
+
+
+// Mapa catastral:
+Route::get('/parcelas',             [ParcelaController::class, 'index'])->name('parcelas.index');
+Route::get('/parcelas/mapa',        [ParcelaController::class, 'mapa'])->name('parcelas.mapa');   // ← antes de {id}
+ 
+// ── API POLÍGONOS (nuevas) ───────────────────────────────────────
+ 
+// Guardar vértices dibujados en el mapa
+Route::post('/api/parcelas/{id}/poligono',   [ParcelaController::class, 'guardarPoligono']);
+ 
+// Borrar polígono
+Route::delete('/api/parcelas/{id}/poligono', [ParcelaController::class, 'borrarPoligono']);
+ 
+// GeoJSON para carga dinámica (opcional, el mapa ya carga con el blade)
+Route::get('/api/parcelas/geojson',          [ParcelaController::class, 'apiGeoJSON']);
+ 

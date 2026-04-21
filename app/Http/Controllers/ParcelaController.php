@@ -9,43 +9,125 @@ use App\Models\Colindancia;
 use App\Models\Coordenada;
 use App\Models\InfAdmin;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ParcelaController extends Controller
 {
-    // Listado
+    // ── LISTADO ─────────────────────────────────────────────
     public function index()
     {
         $parcelas = Parcela::with('ejidatario')->get();
         return view('ListViews.listadoParcelas', compact('parcelas'));
     }
 
-    // Mapa Leaflet
+    // ── MAPA CATASTRAL ──────────────────────────────────────
     public function mapa()
     {
-        $parcelas = Parcela::with(['ejidatario', 'coordenadasPuntos'])
-            ->get()
-            ->map(fn($p) => $p->toMapArray());
+        $parcelas = Parcela::with(['ejidatario', 'coordenadas', 'uso'])->get();
 
-        $resumen = [
-            'total'       => Parcela::count(),
-            'ocupadas'    => Parcela::where('estado', 'ocupada')->count(),
-            'disponibles' => Parcela::where('estado', 'disponible')->count(),
-            'litigio'     => Parcela::where('estado', 'litigio')->count(),
-            'inactivas'   => Parcela::where('estado', 'inactiva')->count(),
+        $geojson = $this->buildGeoJSON($parcelas);
+
+        $stats = [
+            'total'        => $parcelas->count(),
+            'con_poligono' => $parcelas->filter->tienePoligono()->count(),
+            'sin_poligono' => $parcelas->reject->tienePoligono()->count(),
+            'certificadas' => $parcelas->where('estado', 'certificada')->count(),
+            'en_litigio'   => $parcelas->where('estado', 'litigio')->count(),
         ];
 
-        return view('ListViews.mapaParcelas', [
-            'parcelasJson' => $parcelas->toJson(),
-            'resumen'      => $resumen,
+        // Array ya procesado para JS — evita closures dentro de @json en Blade
+        $parcelasJs = $parcelas->map(function ($p) {
+            return [
+                'id'            => $p->idParcela,
+                'folio'         => 'P-' . str_pad($p->noParcela, 3, '0', STR_PAD_LEFT),
+                'noParcela'     => $p->noParcela,
+                'ejidatario'    => $p->ejidatario
+                                    ? $p->ejidatario->nombre . ' ' . $p->ejidatario->apellidoPaterno
+                                    : 'Sin asignar',
+                'superficie'    => $p->superficie,
+                'uso'           => optional($p->uso)->nombre ?? '—',
+                'estado'        => $p->estado ?? 'sin_regularizar',
+                'ubicacion'     => $p->ubicacion,
+                'tienePoligono' => $p->tienePoligono(),
+                'lat'           => $p->lat,
+                'lng'           => $p->lng,
+            ];
+        })->values()->toArray();
+
+        return view('ListViews.mapaParcelas', compact('geojson', 'stats', 'parcelas', 'parcelasJs'));
+    }
+
+    // ── API: GeoJSON para AJAX ──────────────────────────────
+    public function apiGeoJSON()
+    {
+        $parcelas = Parcela::with(['ejidatario', 'coordenadas', 'uso'])->get();
+        return response()->json($this->buildGeoJSON($parcelas));
+    }
+
+    // ── API: GUARDAR VÉRTICES DEL POLÍGONO ──────────────────
+    /**
+     * Recibe los vértices dibujados en el mapa y los persiste.
+     * Body JSON: { vertices: [[lat, lng], [lat, lng], ...] }
+     */
+    public function guardarPoligono(Request $request, $id)
+    {
+        $request->validate([
+            'vertices'   => 'required|array|min:3',
+            'vertices.*' => 'array|size:2',
+        ]);
+
+        $parcela = Parcela::where('idParcela', $id)->firstOrFail();
+
+        DB::transaction(function () use ($parcela, $request) {
+            // Borrar vértices previos
+            Coordenada::where('idParcela', $parcela->idParcela)->delete();
+
+            // Calcular centroide para lat/lng de la parcela
+            $lats = array_column($request->vertices, 0);
+            $lngs = array_column($request->vertices, 1);
+
+            // Insertar nuevos vértices
+            foreach ($request->vertices as $orden => $punto) {
+                Coordenada::create([
+                    'idParcela'   => $parcela->idParcela,
+                    'orden'       => $orden + 1,
+                    'punto'       => 'P' . ($orden + 1),
+                    'coordenadaX' => $punto[0],  // LAT
+                    'coordenadaY' => $punto[1],  // LNG
+                ]);
+            }
+
+            // Actualizar centroide en la parcela
+            $parcela->update([
+                'lat' => array_sum($lats) / count($lats),
+                'lng' => array_sum($lngs) / count($lngs),
+            ]);
+        });
+
+        return response()->json([
+            'ok'      => true,
+            'mensaje' => 'Polígono guardado correctamente.',
+            'total'   => count($request->vertices),
         ]);
     }
 
-    // Formulario nueva parcela + buscador ejidatario
+    // ── API: BORRAR POLÍGONO ────────────────────────────────
+    public function borrarPoligono($id)
+    {
+        $parcela = Parcela::where('idParcela', $id)->firstOrFail();
+        Coordenada::where('idParcela', $parcela->idParcela)->delete();
+        $parcela->update(['lat' => null, 'lng' => null]);
+
+        return response()->json(['ok' => true, 'mensaje' => 'Polígono eliminado.']);
+    }
+
+    // ── FORMULARIO NUEVA PARCELA ─────────────────────────────
     public function create(Request $request)
     {
-        $usos       = Uso::all();           // tabla: tipousosuelo
-        $error      = null;
-        $ejidatario = null;
+        $ejidatarios = Ejidatario::orderBy('nombre')->get();
+        $usos        = Uso::all();
+        $error       = null;
+        $ejidatario  = null;
 
         if ($request->has('numeroEjidatario') && $request->numeroEjidatario !== null) {
             $ejidatario = Ejidatario::where('numeroEjidatario', $request->numeroEjidatario)->first();
@@ -54,157 +136,121 @@ class ParcelaController extends Controller
             }
         }
 
-        return view('RegisterViews.nuevaParcela', compact('usos', 'error', 'ejidatario'));
+        return view('RegisterViews.nuevaParcela', compact('ejidatarios', 'usos', 'error', 'ejidatario'));
     }
 
-    // Guardar parcela completa
+    // ── GUARDAR NUEVA PARCELA ────────────────────────────────
     public function store(Request $request)
     {
-        $request->validate([
-            'noParcela'        => 'required|integer',
-            'superficie'       => 'required|string|max:30',
-            'ubicacion'        => 'required|string|max:30',
-            'numeroEjidatario' => 'required',
-            'usoSuelo'         => 'required|exists:tipousosuelo,idUso',
+        $validated = $request->validate([
+            'noParcela'    => 'required|integer',
+            'superficie'   => 'required|string|max:30',
+            'ubicacion'    => 'required|string|max:30',
+            'idEjidatario' => 'required|exists:ejidatarios,idEjidatario',
+            'idUso'        => 'required|exists:tipousosuelo,idUso',
         ]);
 
-        $ejidatario = Ejidatario::where('numeroEjidatario', $request->numeroEjidatario)->first();
-        if (!$ejidatario) {
-            return back()->withInput()
-                ->with('status', 'error')
-                ->with('mensaje', 'Ejidatario no encontrado.');
-        }
+        DB::transaction(function () use ($request, $validated) {
+            $parcela = Parcela::create($validated);
 
-        // Crear parcela
-        $parcela = Parcela::create([
-            'noParcela'    => $request->noParcela,
-            'superficie'   => $request->superficie,
-            'ubicacion'    => $request->ubicacion,
-            'idEjidatario' => $ejidatario->idEjidatario,
-            'idUso'        => $request->usoSuelo,
-        ]);
-
-        // Colindancias
-        if ($request->filled('norte')) {
-            Colindancia::create([
-                'idParcela' => $parcela->idParcela,
-                'norte'     => $request->norte    ?? '',
-                'sur'       => $request->sur      ?? '',
-                'este'      => $request->este     ?? '',
-                'oeste'     => $request->oeste    ?? '',
-                'noreste'   => $request->noreste  ?? '',
-                'noroeste'  => $request->noroeste ?? '',
-                'sureste'   => $request->sureste  ?? '',
-                'suroeste'  => $request->suroeste ?? '',
-            ]);
-        }
-
-        // Coordenadas
-        $puntos  = $request->input('punto', []);
-        $coordsX = $request->input('coordenadaX', []);
-        $coordsY = $request->input('coordenadaY', []);
-
-        foreach ($puntos as $i => $punto) {
-            if (!empty($coordsX[$i]) && !empty($coordsY[$i])) {
-                Coordenada::create([
-                    'idParcela'   => $parcela->idParcela,
-                    'punto'       => $punto,
-                    'coordenadaX' => $coordsX[$i],
-                    'coordenadaY' => $coordsY[$i],
+            // Colindancias
+            if ($request->filled('norte')) {
+                Colindancia::create([
+                    'idParcela' => $parcela->idParcela,
+                    'norte'     => $request->norte,
+                    'sur'       => $request->sur,
+                    'este'      => $request->este,
+                    'oeste'     => $request->oeste,
+                    'noreste'   => $request->noreste,
+                    'noroeste'  => $request->noroeste,
+                    'sureste'   => $request->sureste,
+                    'suroeste'  => $request->suroeste,
                 ]);
             }
-        }
 
-        // Info administrativa
-        if ($request->filled('num_inscripcionRAN')) {
-            InfAdmin::create([
-                'idParcela'          => $parcela->idParcela,
-                'num_inscripcionRAN' => $request->num_inscripcionRAN,
-                'claveNucleoAgrario' => $request->claveNucleoAgrario,
-                'comunidad'          => $request->comunidad,
-                'fechaExpedicion'    => $request->fechaExpedicion,
-            ]);
-        }
-
-        return redirect()->route('parcelas.index')->with('status', 'success');
-    }
-
-    // Ver parcela por número
-    public function verParcela(Request $request)
-    {
-        $parcela = null;
-
-        if ($request->has('noParcela')) {
-            $parcela = Parcela::with([
-                'ejidatario', 'uso', 'colindancia',
-                'coordenadasPuntos', 'infoAdministrativa'
-            ])->where('noParcela', $request->noParcela)->first();
-
-            if (!$parcela) {
-                return back()->with('parcela_error', 'No se encontró la parcela con ese número.');
+            // Info administrativa
+            if ($request->filled('num_inscripcionRAN')) {
+                InfAdmin::create([
+                    'idParcela'           => $parcela->idParcela,
+                    'num_inscripcionRAN'  => $request->num_inscripcionRAN,
+                    'claveNucleoAgrario'  => $request->claveNucleoAgrario,
+                    'comunidad'           => $request->comunidad,
+                    'fechaExpedicion'     => $request->fechaExpedicion,
+                ]);
             }
-        }
+        });
 
-        return view('ListViews.listadoParcelas', compact('parcela'));
+        return redirect()->route('parcelas.index')
+                         ->with('success', 'Parcela registrada correctamente.');
     }
 
-    // Formulario editar
+    // ── VER PARCELAS (ruta legacy /verParcela) ───────────────
+    public function verParcela()
+    {
+        $parcelas = Parcela::with('ejidatario')->get();
+        return view('ListViews.listadoParcelas', compact('parcelas'));
+    }
+
+    // ── EDITAR ───────────────────────────────────────────────
     public function editarParcela($id)
     {
-        $parcela = Parcela::with(['colindancia', 'coordenadasPuntos', 'infoAdministrativa'])
-            ->findOrFail($id);
-        $usos = Uso::all();
-        return view('EditViews.editarParcela', compact('parcela', 'usos'));
+        $parcela     = Parcela::with(['ejidatario', 'colindancias', 'infAdmin'])->where('idParcela', $id)->firstOrFail();
+        $ejidatarios = Ejidatario::orderBy('nombre')->get();
+        $usos        = Uso::all();
+        return view('EditViews.editarParcela', compact('parcela', 'ejidatarios', 'usos'));
     }
 
-    // Actualizar
     public function actualizarParcela(Request $request)
     {
-        $parcela = Parcela::findOrFail($request->idParcela);
+        $parcela = Parcela::where('idParcela', $request->idParcela)->firstOrFail();
+        $parcela->update($request->only([
+            'noParcela', 'superficie', 'ubicacion', 'idEjidatario', 'idUso',
+        ]));
 
-        $parcela->update([
-            'noParcela'    => $request->noParcela,
-            'superficie'   => $request->superficie,
-            'ubicacion'    => $request->ubicacion,
-            'idEjidatario' => $request->idEjidatario,
-            'idUso'        => $request->usoSuelo,
-        ]);
+        return redirect()->route('parcelas.index')
+                         ->with('success', 'Parcela actualizada correctamente.');
+    }
 
-        if ($parcela->colindancia) {
-            $parcela->colindancia->update([
-                'norte'    => $request->norte    ?? '',
-                'sur'      => $request->sur      ?? '',
-                'este'     => $request->este     ?? '',
-                'oeste'    => $request->oeste    ?? '',
-                'noreste'  => $request->noreste  ?? '',
-                'noroeste' => $request->noroeste ?? '',
-                'sureste'  => $request->sureste  ?? '',
-                'suroeste' => $request->suroeste ?? '',
-            ]);
+    // ── HELPER: construir GeoJSON ────────────────────────────
+    private function buildGeoJSON($parcelas): array
+    {
+        $features = [];
+
+        foreach ($parcelas as $p) {
+            $vertices = $p->vertices; // [[lat,lng], ...]
+
+            if (count($vertices) < 3) {
+                continue; // sin polígono, no se incluye
+            }
+
+            // GeoJSON usa [lng, lat] — invertir
+            $geoCoords = array_map(fn ($v) => [$v[1], $v[0]], $vertices);
+            $geoCoords[] = $geoCoords[0]; // cerrar el anillo
+
+            $features[] = [
+                'type'       => 'Feature',
+                'geometry'   => [
+                    'type'        => 'Polygon',
+                    'coordinates' => [$geoCoords],
+                ],
+                'properties' => [
+                    'id'          => $p->idParcela,
+                    'folio'       => 'P-' . str_pad($p->noParcela, 3, '0', STR_PAD_LEFT),
+                    'noParcela'   => $p->noParcela,
+                    'ejidatario'  => $p->ejidatario
+                                        ? $p->ejidatario->nombre . ' ' . $p->ejidatario->apellidoPaterno
+                                        : 'Sin asignar',
+                    'superficie'  => $p->superficie,
+                    'uso'         => $p->uso->nombre ?? '—',
+                    'estado'      => $p->estado ?? 'sin_regularizar',
+                    'ubicacion'   => $p->ubicacion,
+                ],
+            ];
         }
 
-        return redirect()->route('parcelas.index')->with('status', 'success');
-    }
-
-    // API JSON para Leaflet
-    public function apiParcelas()
-    {
-        $parcelas = Parcela::with(['ejidatario', 'coordenadasPuntos'])
-            ->get()
-            ->map(fn($p) => $p->toMapArray());
-
-        return response()->json($parcelas);
-    }
-
-    // API: guardar coordenadas desde el mapa
-    public function actualizarCoordenadas(Request $request, $id)
-    {
-        $parcela = Parcela::findOrFail($id);
-        $parcela->update([
-            'lat'         => $request->lat,
-            'lng'         => $request->lng,
-            'coordenadas' => $request->coordenadas,
-        ]);
-        return response()->json(['success' => true, 'parcela' => $parcela->toMapArray()]);
+        return [
+            'type'     => 'FeatureCollection',
+            'features' => $features,
+        ];
     }
 }

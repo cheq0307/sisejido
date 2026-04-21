@@ -11,18 +11,11 @@ class Parcela extends Model
     public    $timestamps = false;
 
     protected $fillable = [
-        'noParcela',
-        'superficie',
-        'ubicacion',
-        'idEjidatario',
-        'idUso',
-        // Columnas del mapa (agregadas con la migración)
-        'estado',
-        'cultivo',
-        'tipo_agua',
-        'coordenadas',
-        'lat',
-        'lng',
+        'noParcela', 'superficie', 'ubicacion',
+        'idEjidatario', 'idUso',
+        'estado', 'cultivo', 'tipo_agua',
+        'coordenadas',          // JSON legacy (puede quedar vacío)
+        'lat', 'lng',           // centroide para zoom rápido
     ];
 
     protected $casts = [
@@ -43,76 +36,48 @@ class Parcela extends Model
         return $this->belongsTo(Uso::class, 'idUso', 'idUso');
     }
 
-    // tabla: coordenada (sin 's')
-    public function coordenadasPuntos()
+    public function colindancias()
     {
-        return $this->hasMany(Coordenada::class, 'idParcela', 'idParcela');
+        return $this->hasMany(Colindancia::class, 'idParcela', 'idParcela');
     }
 
-    // tabla: colindancia (sin 's')
-    public function colindancia()
+    /**
+     * Vértices del polígono, siempre ordenados por `orden` ASC.
+     * Cada vértice: coordenadaX = LAT, coordenadaY = LNG.
+     */
+    public function coordenadas()
     {
-        return $this->hasOne(Colindancia::class, 'idParcela', 'idParcela');
+        return $this->hasMany(Coordenada::class, 'idParcela', 'idParcela')
+                    ->orderBy('orden');
     }
 
-    // tabla: infadmin
-    public function infoAdministrativa()
+    public function infAdmin()
     {
         return $this->hasOne(InfAdmin::class, 'idParcela', 'idParcela');
     }
 
-    // ── Scope por estado ────────────────────────────────────
+    // ── Helpers ─────────────────────────────────────────────
 
-    public function scopeEstado($query, $estado)
+    /**
+     * Devuelve los vértices como array [[lat, lng], ...]
+     * listo para JSON y Leaflet.
+     */
+    public function getVerticesAttribute(): array
     {
-        return $query->where('estado', $estado);
+        $coords = $this->relationLoaded('coordenadas')
+            ? $this->getRelation('coordenadas')
+            : $this->coordenadas()->orderBy('orden')->get();
+
+        return ($coords ?? collect())
+            ->map(fn ($c) => [(float) $c->coordenadaX, (float) $c->coordenadaY])
+            ->toArray();
     }
 
-    // ── Color para el mapa según estado ─────────────────────
-
-    public function getColorMapaAttribute(): string
+    /**
+     * ¿Tiene polígono dibujado?
+     */
+    public function tienePoligono(): bool
     {
-        return match($this->estado ?? 'inactiva') {
-            'ocupada'    => '#1D9E75',
-            'disponible' => '#378ADD',
-            'litigio'    => '#E24B4A',
-            'inactiva'   => '#888780',
-            default      => '#888780',
-        };
-    }
-
-    // ── Array para Leaflet ───────────────────────────────────
-
-    public function toMapArray(): array
-    {
-        // Usar coordenadas JSON si existen, si no usar tabla coordenada
-        $coords = $this->coordenadas;
-        if (empty($coords) && $this->relationLoaded('coordenadasPuntos')) {
-            $coords = $this->coordenadasPuntos->map(fn($c) => [
-                (float) $c->coordenadaX,
-                (float) $c->coordenadaY,
-            ])->toArray();
-        }
-
-        $nombreEjidatario = $this->ejidatario
-            ? $this->ejidatario->nombre . ' ' .
-              $this->ejidatario->apellidoPaterno . ' ' .
-              $this->ejidatario->apellidoMaterno
-            : 'Sin asignar';
-
-        return [
-            'id'          => $this->idParcela,
-            'clave'       => $this->noParcela,
-            'ejidatario'  => $nombreEjidatario,
-            'superficie'  => $this->superficie,
-            'ubicacion'   => $this->ubicacion,
-            'estado'      => $this->estado ?? 'inactiva',
-            'cultivo'     => $this->cultivo ?? '—',
-            'tipo_agua'   => $this->tipo_agua ?? '—',
-            'color'       => $this->color_mapa,
-            'coordenadas' => $coords ?? [],
-            'lat'         => $this->lat,
-            'lng'         => $this->lng,
-        ];
+        return $this->coordenadas()->count() >= 3;
     }
 }

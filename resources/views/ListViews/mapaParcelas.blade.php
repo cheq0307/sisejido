@@ -365,6 +365,10 @@
                         <div class="leyenda-item"><div class="leyenda-color" style="background:#16a34a55;border-color:#15803d"></div>Certificada</div>
                         <div class="leyenda-item"><div class="leyenda-color" style="background:#dc262655;border-color:#b91c1c"></div>En litigio</div>
                         <div class="leyenda-item"><div class="leyenda-color" style="background:#d9770655;border-color:#b45309"></div>Sin regularizar</div>
+                <div class="leyenda-item">
+                    <div style="width:16px;height:3px;border-top:2px dashed #b91c1c;margin-top:4px;flex-shrink:0"></div>
+                    Perímetro ejidal
+                </div>
                     </div>
 
                     <div class="panel-seccion">
@@ -476,13 +480,60 @@ const ESTILOS = {
 };
 
 const map = L.map('mapa', {
-    center: [19.291944, -98.562222],
-    zoom: 14,
+    center: [19.2933, -98.5620],
+    zoom: 15,
     zoomControl: false,
     layers: [CAPAS.osm],
 });
 L.control.zoom({ position: 'bottomleft' }).addTo(map);
 L.control.scale({ metric: true, imperial: false, position: 'bottomleft' }).addTo(map);
+
+// ══════════════════════════════════════════════════════════════
+//  PERÍMETRO DEL EJIDO — San Rafael Ixtapalucan
+//  Trazado sobre imagen Google Maps (contorno línea roja)
+//  Zona: Santa Rita Tlahuapan, Puebla
+// ══════════════════════════════════════════════════════════════
+const PERIMETRO_EJIDO = [
+    [19.3012, -98.5750],
+    [19.3025, -98.5710],
+    [19.3038, -98.5668],
+    [19.3042, -98.5625],
+    [19.3035, -98.5585],
+    [19.3018, -98.5552],
+    [19.2998, -98.5530],
+    [19.2972, -98.5518],
+    [19.2945, -98.5515],
+    [19.2918, -98.5520],
+    [19.2892, -98.5535],
+    [19.2868, -98.5558],
+    [19.2850, -98.5588],
+    [19.2838, -98.5625],
+    [19.2835, -98.5665],
+    [19.2842, -98.5705],
+    [19.2858, -98.5742],
+    [19.2882, -98.5772],
+    [19.2912, -98.5792],
+    [19.2945, -98.5800],
+    [19.2978, -98.5795],
+    [19.3005, -98.5778],
+    [19.3012, -98.5750],
+];
+
+const layerPerimetro = L.polygon(PERIMETRO_EJIDO, {
+    color: '#b91c1c',
+    weight: 2.5,
+    dashArray: '8 5',
+    fill: false,
+    opacity: 0.85,
+}).addTo(map);
+
+layerPerimetro.bindTooltip('Ejido San Rafael Ixtapalucan', {
+    permanent: false,
+    direction: 'center',
+    className: 'leaflet-tooltip',
+});
+
+
 
 let capaActual     = 'osm';
 let layerPoligonos = L.layerGroup().addTo(map);
@@ -634,6 +685,9 @@ document.getElementById('chk-parcelas').addEventListener('change', function() {
 document.getElementById('chk-etiquetas').addEventListener('change', function() {
     this.checked ? map.addLayer(layerEtiquetas) : map.removeLayer(layerEtiquetas);
 });
+document.getElementById('chk-perimetro').addEventListener('change', function() {
+    this.checked ? map.addLayer(layerPerimetro) : map.removeLayer(layerPerimetro);
+});
 
 map.on('mousemove', e => {
     document.getElementById('coords').textContent = `Lat: ${e.latlng.lat.toFixed(6)}  |  Lng: ${e.latlng.lng.toFixed(6)}`;
@@ -651,9 +705,7 @@ function togglePanel() {
 }
 
 function centrarEjido() {
-    const polys = Object.values(polyMap);
-    if (polys.length) map.fitBounds(L.featureGroup(polys).getBounds(),{padding:[40,40]});
-    else map.setView([19.291944,-98.562222],14);
+    map.fitBounds(layerPerimetro.getBounds(), { padding: [30, 30] });
 }
 
 function toast(msg, tipo='success') {

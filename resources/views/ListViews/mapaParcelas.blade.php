@@ -118,28 +118,7 @@
         .tab-capa:hover:not(.activo) { background: #eef3fb; }
 
         /* Toggle panel */
-        /* Toggle panel — pegado al borde derecho del panel */
-        #btn-toggle {
-            position: absolute;
-            top: 50%;
-            left: 0;
-            transform: translateY(-50%);
-            z-index: 600;
-            background: #fff;
-            border: 1px solid #ccc;
-            border-left: none;
-            width: 16px;
-            height: 36px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 0 5px 5px 0;
-            box-shadow: 2px 0 4px rgba(0,0,0,.1);
-            font-size: 10px;
-            color: #666;
-            transition: none;
-        }
+
 
         /* Info parcela */
         #info-parcela {
@@ -350,41 +329,6 @@
                     </div>
 
                     <div class="panel-seccion">
-                        <div class="panel-titulo">Capa base</div>
-                        <label class="d-flex align-items-center gap-2 mb-1" style="font-size:12px;cursor:pointer">
-                            <input type="radio" name="capa" value="osm" checked> OpenStreetMap
-                        </label>
-                        <label class="d-flex align-items-center gap-2 mb-1" style="font-size:12px;cursor:pointer">
-                            <input type="radio" name="capa" value="sat_google"> Satélite Google
-                        </label>
-                        <label class="d-flex align-items-center gap-2 mb-1" style="font-size:12px;cursor:pointer">
-                            <input type="radio" name="capa" value="sat_esri"> Satélite ESRI
-                        </label>
-                    </div>
-
-                    <div class="panel-seccion">
-                        <div class="panel-titulo">Capas</div>
-                        <label class="d-flex align-items-center gap-2 mb-1" style="font-size:12px;cursor:pointer">
-                            <input type="checkbox" id="chk-parcelas" checked> Parcelas
-                        </label>
-                        <label class="d-flex align-items-center gap-2 mb-1" style="font-size:12px;cursor:pointer">
-                            <input type="checkbox" id="chk-etiquetas"> Etiquetas
-                        </label>
-                    </div>
-
-                    <div class="panel-seccion">
-                        <div class="panel-titulo">Leyenda</div>
-                        <div class="leyenda-item"><div class="leyenda-color" style="background:#2563eb55;border-color:#1d4ed8"></div>Con expediente</div>
-                        <div class="leyenda-item"><div class="leyenda-color" style="background:#16a34a55;border-color:#15803d"></div>Certificada</div>
-                        <div class="leyenda-item"><div class="leyenda-color" style="background:#dc262655;border-color:#b91c1c"></div>En litigio</div>
-                        <div class="leyenda-item"><div class="leyenda-color" style="background:#d9770655;border-color:#b45309"></div>Sin regularizar</div>
-                <div class="leyenda-item">
-                    <div style="width:16px;height:3px;border-top:2px dashed #b91c1c;margin-top:4px;flex-shrink:0"></div>
-                    Perímetro ejidal
-                </div>
-                    </div>
-
-                    <div class="panel-seccion">
                         <div class="panel-titulo">Parcelas ({{ $parcelas->count() }})</div>
                         @foreach($parcelas as $p)
                         <div class="parcela-item" data-id="{{ $p->idParcela }}"
@@ -424,8 +368,6 @@
 
             {{-- Área del mapa --}}
             <div id="mapa-area">
-                <div id="btn-toggle" onclick="togglePanel()">›</div>
-
                 <div id="tabs-capa">
                     <div class="tab-capa activo" data-capa="osm">OSM</div>
                     <div class="tab-capa" data-capa="sat_google">Satélite</div>
@@ -451,15 +393,6 @@
                         <div class="info-fila"><span class="info-etiqueta">Superficie:</span><span id="inf-superficie">—</span></div>
                         <div class="info-fila"><span class="info-etiqueta">Uso suelo:</span><span id="inf-uso">—</span></div>
                         <div class="info-fila"><span class="info-etiqueta">Estado:</span><span id="inf-estado">—</span></div>
-                        <div class="mt-2 d-flex gap-2">
-                            <button class="btn btn-ejidal btn-sm" id="btn-dibujar" onclick="iniciarDibujo()">
-                                <i class="fas fa-draw-polygon me-1"></i> Dibujar polígono
-                            </button>
-                            <button class="btn btn-outline-danger btn-sm" id="btn-borrar-poly"
-                                    onclick="confirmarBorrar()" style="display:none">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
                     </div>
                 </div>
 
@@ -494,8 +427,11 @@ const ESTILOS = {
 
 const map = L.map('mapa', {
     center: [19.2933, -98.5620],
-    zoom: 15,
+    zoom: 16,
     zoomControl: false,
+    zoomSnap: 0.5,
+    zoomDelta: 0.5,
+    wheelPxPerZoomLevel: 60,
     layers: [CAPAS.osm],
 });
 L.control.zoom({ position: 'bottomleft' }).addTo(map);
@@ -507,29 +443,47 @@ L.control.scale({ metric: true, imperial: false, position: 'bottomleft' }).addTo
 //  Zona: Santa Rita Tlahuapan, Puebla
 // ══════════════════════════════════════════════════════════════
 const PERIMETRO_EJIDO = [
-    [19.3012, -98.5750],
-    [19.3025, -98.5710],
-    [19.3038, -98.5668],
-    [19.3042, -98.5625],
-    [19.3035, -98.5585],
-    [19.3018, -98.5552],
-    [19.2998, -98.5530],
-    [19.2972, -98.5518],
-    [19.2945, -98.5515],
-    [19.2918, -98.5520],
-    [19.2892, -98.5535],
-    [19.2868, -98.5558],
-    [19.2850, -98.5588],
-    [19.2838, -98.5625],
-    [19.2835, -98.5665],
-    [19.2842, -98.5705],
-    [19.2858, -98.5742],
-    [19.2882, -98.5772],
-    [19.2912, -98.5792],
-    [19.2945, -98.5800],
-    [19.2978, -98.5795],
-    [19.3005, -98.5778],
-    [19.3012, -98.5750],
+    // Trazado sobre imagen Google Maps oficial — San Rafael Ixtapalucan
+    // Esquina norte-este (arriba derecha)
+    [19.3058, -98.5482],
+    [19.3055, -98.5468],
+    [19.3048, -98.5455],
+    // Borde este (derecha) bajando
+    [19.3020, -98.5448],
+    [19.2998, -98.5450],
+    [19.2975, -98.5455],
+    [19.2958, -98.5462],
+    // Esquina sur-este
+    [19.2932, -98.5468],
+    [19.2910, -98.5480],
+    // Borde sur bajando
+    [19.2890, -98.5510],
+    [19.2878, -98.5538],
+    [19.2868, -98.5562],
+    [19.2862, -98.5588],
+    // Esquina sur-oeste
+    [19.2860, -98.5618],
+    [19.2865, -98.5648],
+    [19.2872, -98.5672],
+    // Borde sur-oeste subiendo
+    [19.2885, -98.5695],
+    [19.2902, -98.5710],
+    // Borde oeste (izquierda) subiendo
+    [19.2928, -98.5725],
+    [19.2950, -98.5730],
+    [19.2968, -98.5728],
+    // Borde norte-oeste
+    [19.2988, -98.5720],
+    [19.3005, -98.5705],
+    [19.3022, -98.5688],
+    [19.3038, -98.5665],
+    [19.3048, -98.5640],
+    // Borde norte
+    [19.3058, -98.5610],
+    [19.3062, -98.5578],
+    [19.3062, -98.5545],
+    [19.3060, -98.5512],
+    [19.3058, -98.5482],
 ];
 
 const layerPerimetro = L.polygon(PERIMETRO_EJIDO, {
@@ -598,8 +552,7 @@ function mostrarInfo(p, layer) {
     document.getElementById('inf-superficie').textContent = p.superficie ? p.superficie + ' ha' : '—';
     document.getElementById('inf-uso').textContent        = p.uso;
     document.getElementById('inf-estado').textContent     = ESTADOS_LBL[p.estado] || p.estado;
-    document.getElementById('btn-dibujar').innerHTML      = p.tienePoligono ? '<i class="fas fa-draw-polygon me-1"></i> Redibujar' : '<i class="fas fa-draw-polygon me-1"></i> Dibujar polígono';
-    document.getElementById('btn-borrar-poly').style.display = p.tienePoligono ? 'inline-flex' : 'none';
+
     document.getElementById('info-parcela').style.display = 'block';
 }
 
@@ -706,14 +659,7 @@ map.on('mousemove', e => {
     document.getElementById('coords').textContent = `Lat: ${e.latlng.lat.toFixed(6)}  |  Lng: ${e.latlng.lng.toFixed(6)}`;
 });
 
-let panelAbierto = true;
-function togglePanel() {
-    panelAbierto = !panelAbierto;
-    document.getElementById('panel-mapa').classList.toggle('cerrado', !panelAbierto);
-    const btn = document.getElementById('btn-toggle');
-    btn.textContent = panelAbierto ? '›' : '‹';
-    setTimeout(() => map.invalidateSize(), 260);
-}
+
 
 function centrarEjido() {
     map.fitBounds(layerPerimetro.getBounds(), { padding: [30, 30] });

@@ -118,15 +118,28 @@
         .tab-capa:hover:not(.activo) { background: #eef3fb; }
 
         /* Toggle panel */
+        /* Toggle panel — pegado al borde derecho del panel */
         #btn-toggle {
-            position: absolute; top: 50%; left: 260px; transform: translateY(-50%);
-            z-index: 600; background: #fff; border: 1px solid #ccc; border-left: none;
-            width: 16px; height: 36px; cursor: pointer;
-            display: flex; align-items: center; justify-content: center;
-            border-radius: 0 5px 5px 0; box-shadow: 2px 0 4px rgba(0,0,0,.1);
-            font-size: 10px; color: #666; transition: left .25s;
+            position: absolute;
+            top: 50%;
+            left: 0;
+            transform: translateY(-50%);
+            z-index: 600;
+            background: #fff;
+            border: 1px solid #ccc;
+            border-left: none;
+            width: 16px;
+            height: 36px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0 5px 5px 0;
+            box-shadow: 2px 0 4px rgba(0,0,0,.1);
+            font-size: 10px;
+            color: #666;
+            transition: none;
         }
-        #btn-toggle.cerrado { left: 0; }
 
         /* Info parcela */
         #info-parcela {
@@ -699,8 +712,6 @@ function togglePanel() {
     document.getElementById('panel-mapa').classList.toggle('cerrado', !panelAbierto);
     const btn = document.getElementById('btn-toggle');
     btn.textContent = panelAbierto ? '›' : '‹';
-    btn.style.left  = panelAbierto ? '260px' : '0';
-    btn.classList.toggle('cerrado', !panelAbierto);
     setTimeout(() => map.invalidateSize(), 260);
 }
 

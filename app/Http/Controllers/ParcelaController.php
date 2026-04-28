@@ -211,6 +211,23 @@ class ParcelaController extends Controller
                          ->with('success', 'Parcela actualizada correctamente.');
     }
 
+
+    // ── ELIMINAR PARCELA ─────────────────────────────────────
+    public function destroy($id)
+    {
+        $parcela = Parcela::where('idParcela', $id)->firstOrFail();
+
+        DB::transaction(function () use ($parcela) {
+            // Eliminar datos relacionados
+            Coordenada::where('idParcela', $parcela->idParcela)->delete();
+            Colindancia::where('idParcela', $parcela->idParcela)->delete();
+            InfAdmin::where('idParcela', $parcela->idParcela)->delete();
+            $parcela->delete();
+        });
+
+        return redirect()->route('parcelas.index')
+                         ->with('success', 'Parcela eliminada correctamente.');
+    }
     // ── HELPER: construir GeoJSON ────────────────────────────
     private function buildGeoJSON($parcelas): array
     {

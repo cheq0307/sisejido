@@ -98,3 +98,12 @@ Route::delete('/api/parcelas/{id}/poligono', [ParcelaController::class, 'borrarP
 // GeoJSON para carga dinámica (opcional, el mapa ya carga con el blade)
 Route::get('/api/parcelas/geojson',          [ParcelaController::class, 'apiGeoJSON']);
  
+Route::delete('/parcelas/{id}', [ParcelaController::class, 'destroy'])->name('parcelas.destroy');
+
+Route::post('/api/parcelas/{id}/poligono',   [ParcelaController::class, 'guardarPoligono']);
+ 
+// Borrar polígono
+Route::delete('/api/parcelas/{id}/poligono', [ParcelaController::class, 'borrarPoligono']);
+ 
+// GeoJSON para carga dinámica (opcional, el mapa ya carga con el blade)
+Route::get('/api/parcelas/geojson',          [ParcelaController::class, 'apiGeoJSON']);

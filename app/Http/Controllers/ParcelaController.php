@@ -142,16 +142,58 @@ class ParcelaController extends Controller
     // ── GUARDAR NUEVA PARCELA ────────────────────────────────
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'noParcela'    => 'required|integer',
-            'superficie'   => 'required|string|max:30',
-            'ubicacion'    => 'required|string|max:30',
-            'idEjidatario' => 'required|exists:ejidatarios,idEjidatario',
-            'idUso'        => 'required|exists:tipousosuelo,idUso',
-        ]);
+        // Buscar ejidatario por número
+        $ejidatario = Ejidatario::where('numeroEjidatario', $request->numeroEjidatario)->first();
+        if (!$ejidatario) {
+            return back()->withInput()
+                         ->with('status', 'error')
+                         ->with('mensaje', 'Ejidatario no encontrado.');
+        }
 
-        DB::transaction(function () use ($request, $validated) {
-            $parcela = Parcela::create($validated);
+        DB::transaction(function () use ($request, $ejidatario) {
+
+            // Calcular centroide si hay coordenadas válidas
+            $lats = []; $lngs = [];
+            if ($request->coordenadaX) {
+                foreach ($request->coordenadaX as $i => $x) {
+                    $y = $request->coordenadaY[$i] ?? null;
+                    if ($x !== null && $x !== '' && $y !== null && $y !== '') {
+                        $lat = (float) $x; $lng = (float) $y;
+                        if ($lat >= 14 && $lat <= 33 && $lng >= -120 && $lng <= -85) {
+                            $lats[] = $lat; $lngs[] = $lng;
+                        }
+                    }
+                }
+            }
+
+            // Crear parcela
+            $parcela = Parcela::create([
+                'noParcela'    => $request->noParcela,
+                'superficie'   => $request->superficie,
+                'ubicacion'    => $request->ubicacion,
+                'idEjidatario' => $ejidatario->idEjidatario,
+                'idUso'        => $request->usoSuelo,
+                'lat'          => count($lats) ? array_sum($lats) / count($lats) : null,
+                'lng'          => count($lngs) ? array_sum($lngs) / count($lngs) : null,
+            ]);
+
+            // Guardar coordenadas GPS
+            if (count($lats) >= 3) {
+                $orden = 1;
+                foreach ($request->coordenadaX as $i => $x) {
+                    $y = $request->coordenadaY[$i] ?? null;
+                    if ($x === null || $x === '' || $y === null || $y === '') continue;
+                    $lat = (float) $x; $lng = (float) $y;
+                    if ($lat < 14 || $lat > 33 || $lng < -120 || $lng > -85) continue;
+                    Coordenada::create([
+                        'idParcela'   => $parcela->idParcela,
+                        'orden'       => $orden++,
+                        'punto'       => $request->punto[$i] ?? ('P' . $orden),
+                        'coordenadaX' => $lat,
+                        'coordenadaY' => $lng,
+                    ]);
+                }
+            }
 
             // Colindancias
             if ($request->filled('norte')) {
@@ -171,17 +213,17 @@ class ParcelaController extends Controller
             // Info administrativa
             if ($request->filled('num_inscripcionRAN')) {
                 InfAdmin::create([
-                    'idParcela'           => $parcela->idParcela,
-                    'num_inscripcionRAN'  => $request->num_inscripcionRAN,
-                    'claveNucleoAgrario'  => $request->claveNucleoAgrario,
-                    'comunidad'           => $request->comunidad,
-                    'fechaExpedicion'     => $request->fechaExpedicion,
+                    'idParcela'          => $parcela->idParcela,
+                    'num_inscripcionRAN' => $request->num_inscripcionRAN,
+                    'claveNucleoAgrario' => $request->claveNucleoAgrario,
+                    'comunidad'          => $request->comunidad,
+                    'fechaExpedicion'    => $request->fechaExpedicion,
                 ]);
             }
         });
 
-        return redirect()->route('parcelas.index')
-                         ->with('success', 'Parcela registrada correctamente.');
+        return redirect()->route('parcelas.mapa')
+                         ->with('success', 'Parcela registrada. El polígono ya aparece en el mapa.');
     }
 
     // ── VER PARCELAS (ruta legacy /verParcela) ───────────────
@@ -194,18 +236,82 @@ class ParcelaController extends Controller
     // ── EDITAR ───────────────────────────────────────────────
     public function editarParcela($id)
     {
-        $parcela     = Parcela::with(['ejidatario', 'colindancias', 'infAdmin'])->where('idParcela', $id)->firstOrFail();
+        $parcela     = Parcela::with(['ejidatario', 'coordenadas', 'infAdmin'])->where('idParcela', $id)->firstOrFail();
         $ejidatarios = Ejidatario::orderBy('nombre')->get();
         $usos        = Uso::all();
-        return view('EditViews.editarParcela', compact('parcela', 'ejidatarios', 'usos'));
+
+        // Ejidatario de la parcela
+        $ejidatario  = $parcela->ejidatario;
+
+        // Coordenadas ordenadas
+        $coordenadas = $parcela->coordenadas;
+
+        // Colindancias como array asociativo para la vista
+        $col = Colindancia::where('idParcela', $parcela->idParcela)->first();
+        $colindancia = $col ? $col->toArray() : [];
+
+        // Info administrativa
+        $infAdmin = $parcela->infAdmin;
+
+        return view('EditViews.editarParcela', compact(
+            'parcela', 'ejidatario', 'ejidatarios', 'usos',
+            'coordenadas', 'colindancia', 'infAdmin'
+        ));
     }
 
     public function actualizarParcela(Request $request)
     {
         $parcela = Parcela::where('idParcela', $request->idParcela)->firstOrFail();
-        $parcela->update($request->only([
-            'noParcela', 'superficie', 'ubicacion', 'idEjidatario', 'idUso',
-        ]));
+
+        DB::transaction(function () use ($request, $parcela) {
+
+            // Actualizar datos básicos
+            $parcela->update([
+                'noParcela'  => $request->noParcela,
+                'superficie' => $request->superficie,
+                'ubicacion'  => $request->ubicacion,
+                'idUso'      => $request->usoSuelo,
+            ]);
+
+            // Actualizar coordenadas
+            if ($request->coordenadas) {
+                foreach ($request->coordenadas as $c) {
+                    Coordenada::where('idCoordenada', $c['idCoordenada'])->update([
+                        'punto'       => $c['punto'],
+                        'coordenadaX' => $c['coordenadaX'],
+                        'coordenadaY' => $c['coordenadaY'],
+                    ]);
+                }
+                // Recalcular centroide
+                $coords = Coordenada::where('idParcela', $parcela->idParcela)->get();
+                if ($coords->count() >= 3) {
+                    $parcela->update([
+                        'lat' => $coords->avg('coordenadaX'),
+                        'lng' => $coords->avg('coordenadaY'),
+                    ]);
+                }
+            }
+
+            // Actualizar colindancias
+            Colindancia::where('idParcela', $parcela->idParcela)->update([
+                'norte'    => $request->norte,
+                'sur'      => $request->sur,
+                'este'     => $request->este,
+                'oeste'    => $request->oeste,
+                'noreste'  => $request->noreste,
+                'noroeste' => $request->noroeste,
+                'sureste'  => $request->sureste,
+                'suroeste' => $request->suroeste,
+            ]);
+
+            // Actualizar info administrativa
+            InfAdmin::where('idParcela', $parcela->idParcela)->update([
+                'num_inscripcionRAN' => $request->num_inscripcionRAN,
+                'claveNucleoAgrario' => $request->claveNucleoAgrario,
+                'comunidad'          => $request->comunidad,
+                'fechaExpedicion'    => $request->fechaExpedicion,
+            ]);
+        });
 
         return redirect()->route('parcelas.index')
                          ->with('success', 'Parcela actualizada correctamente.');

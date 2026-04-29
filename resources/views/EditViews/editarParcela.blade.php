@@ -21,7 +21,7 @@
 
             <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                 <h1 class="h2 text-ejidal">Editar Parcela</h1>
-                <a href="{{ route('parcelas.create') }}" class="btn btn-ejidal">Nueva Parcela</a>
+                <a href="{{ route('parcelas.index') }}" class="btn btn-ejidal">Ir al listado</a>
             </div>
 
             @if(session('success'))
@@ -32,17 +32,7 @@
                 <div class="alert alert-danger">{{ session('error') }}</div>
             @endif
 
-            <!-- BUSCADOR -->
-            <form method="GET" action="{{ route('parcelas.ver') }}" class="mb-3">
-                <div class="input-group">
-                    <input type="text"
-                           name="noParcela"
-                           class="form-control form-control-ejidal"
-                           placeholder="Buscar Parcela por No. de Parcela..."
-                           value="{{ request('noParcela') }}">
-                    <button class="btn btn-ejidal" type="submit">Buscar</button>
-                </div>
-            </form>
+
 
             <!-- FORMULARIO EDITAR -->
             <form method="POST" action="{{ route('parcelas.actualizar') }}">

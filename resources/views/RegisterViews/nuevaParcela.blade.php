@@ -8,134 +8,82 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <link rel="stylesheet" href="{{ asset('css/estiloNuevoE.css') }}">
     <style>
-        /* ── Sección coordenadas profesional ── */
-        .coord-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+        .coord-table { width:100%; border-collapse:separate; border-spacing:0; }
         .coord-table thead th {
-            background: #f1f5f9;
-            font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: .5px;
-            color: #64748b;
-            padding: 8px 10px;
-            border-bottom: 2px solid #e2e8f0;
+            background:#f1f5f9; font-size:11px; font-weight:700;
+            text-transform:uppercase; letter-spacing:.5px; color:#64748b;
+            padding:8px 10px; border-bottom:2px solid #e2e8f0;
         }
-        .coord-table tbody tr { transition: background .12s; }
-        .coord-table tbody tr:hover { background: #f8fafc; }
-        .coord-table td { padding: 5px 6px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+        .coord-table tbody tr:hover { background:#f8fafc; }
+        .coord-table td { padding:4px 6px; border-bottom:1px solid #f1f5f9; vertical-align:middle; }
 
         .punto-badge {
-            display: inline-flex; align-items: center; justify-content: center;
-            width: 28px; height: 28px; border-radius: 50%;
-            background: #1a4c8b; color: #fff;
-            font-size: 12px; font-weight: 700; flex-shrink: 0;
+            display:inline-flex; align-items:center; justify-content:center;
+            width:30px; height:30px; border-radius:50%;
+            background:#1a4c8b; color:#fff;
+            font-size:11px; font-weight:700; flex-shrink:0;
         }
         .coord-input {
-            border: 1px solid #e2e8f0;
-            border-radius: 6px;
-            padding: 6px 10px;
-            font-size: 13px;
-            font-family: 'Courier New', monospace;
-            width: 100%;
-            transition: border-color .15s, box-shadow .15s;
+            border:1px solid #e2e8f0; border-radius:6px;
+            padding:5px 8px; font-size:12px;
+            font-family:'Courier New',monospace; width:100%;
+            transition:border-color .15s, box-shadow .15s;
         }
-        .coord-input:focus {
-            outline: none;
-            border-color: #1a4c8b;
-            box-shadow: 0 0 0 3px rgba(26,76,139,.12);
-        }
-        .coord-input.valido   { border-color: #16a34a; background: #f0fdf4; }
-        .coord-input.invalido { border-color: #dc2626; background: #fef2f2; }
-        .coord-input:disabled { background: #f8fafc; color: #94a3b8; }
+        .coord-input:focus { outline:none; border-color:#1a4c8b; box-shadow:0 0 0 3px rgba(26,76,139,.12); }
+        .coord-input.valido   { border-color:#16a34a; background:#f0fdf4; }
+        .coord-input.invalido { border-color:#dc2626; background:#fef2f2; }
+        .coord-input.duplicado{ border-color:#f59e0b; background:#fffbeb; }
+        .coord-input:disabled { background:#f8fafc; color:#94a3b8; }
 
         .btn-add-punto {
-            border: 2px dashed #cbd5e1;
-            background: transparent;
-            color: #64748b;
-            border-radius: 8px;
-            padding: 6px 16px;
-            font-size: 13px;
-            cursor: pointer;
-            transition: all .15s;
-            width: 100%;
+            border:2px dashed #cbd5e1; background:transparent; color:#64748b;
+            border-radius:8px; padding:5px 14px; font-size:12px; cursor:pointer;
+            transition:all .15s; width:100%;
         }
-        .btn-add-punto:hover { border-color: #1a4c8b; color: #1a4c8b; background: #f0f4fb; }
+        .btn-add-punto:hover { border-color:#1a4c8b; color:#1a4c8b; background:#f0f4fb; }
+        .btn-rm { background:none; border:none; color:#cbd5e1; cursor:pointer; font-size:13px; padding:3px 5px; border-radius:4px; transition:color .12s; }
+        .btn-rm:hover { color:#dc2626; }
 
-        .btn-rm { 
-            background: none; border: none; color: #cbd5e1; 
-            cursor: pointer; font-size: 14px; padding: 4px 6px;
-            border-radius: 4px; transition: color .12s;
-        }
-        .btn-rm:hover { color: #dc2626; }
+        #mapa-preview { height:270px; border-radius:10px; border:2px solid #e2e8f0; overflow:hidden; position:relative; }
+        #mapa-preview-inner { width:100%; height:100%; }
+        #preview-hint { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); text-align:center; color:#94a3b8; font-size:12px; pointer-events:none; z-index:1000; }
+        #preview-hint i { font-size:26px; display:block; margin-bottom:5px; }
 
-        /* Mini mapa preview */
-        #mapa-preview {
-            height: 280px;
-            border-radius: 10px;
-            border: 2px solid #e2e8f0;
-            overflow: hidden;
-            position: relative;
-        }
-        #mapa-preview-inner { width: 100%; height: 100%; }
-        #preview-hint {
-            position: absolute; top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center; color: #94a3b8;
-            font-size: 13px; pointer-events: none;
-            z-index: 1000;
-        }
-        #preview-hint i { font-size: 28px; display: block; margin-bottom: 6px; }
+        .coord-ayuda { background:#f0f7ff; border:1px solid #bfdbfe; border-radius:8px; padding:9px 13px; font-size:12px; color:#1e40af; margin-bottom:10px; }
+        .coord-ayuda code { background:#dbeafe; border-radius:3px; padding:1px 5px; font-size:11px; }
 
-        /* Indicador de puntos */
-        .puntos-counter {
-            display: flex; align-items: center; gap: 6px;
-            font-size: 12px; color: #64748b;
+        /* Zona de carga de archivo */
+        #zona-archivo {
+            border:2px dashed #cbd5e1; border-radius:10px; padding:18px;
+            text-align:center; cursor:pointer; transition:all .2s;
+            background:#fafafa; margin-bottom:12px;
         }
-        .puntos-counter .count {
-            font-weight: 700; color: #1a4c8b; font-size: 15px;
-        }
-        .punto-valido-indicator {
-            width: 8px; height: 8px; border-radius: 50%;
-            background: #e2e8f0; display: inline-block;
-            transition: background .2s;
-        }
-        .punto-valido-indicator.ok { background: #16a34a; }
+        #zona-archivo:hover, #zona-archivo.dragover { border-color:#1a4c8b; background:#f0f4fb; }
+        #zona-archivo i { font-size:28px; color:#94a3b8; display:block; margin-bottom:6px; }
+        #zona-archivo .titulo { font-size:13px; font-weight:600; color:#374151; }
+        #zona-archivo .subtitulo { font-size:11px; color:#9ca3af; margin-top:3px; }
+        #archivo-input { display:none; }
 
-        /* Ayuda coordenadas */
-        .coord-ayuda {
-            background: #f0f7ff;
-            border: 1px solid #bfdbfe;
-            border-radius: 8px;
-            padding: 10px 14px;
-            font-size: 12px;
-            color: #1e40af;
-            margin-bottom: 12px;
-        }
-        .coord-ayuda code {
-            background: #dbeafe;
-            border-radius: 3px;
-            padding: 1px 5px;
-            font-size: 11px;
-        }
+        /* Alerta de errores de importación */
+        #errores-importacion { display:none; }
 
-        /* Botón ejidal */
-        .btn-ejidal { background: #2d6a2d; border-color: #2d6a2d; color: #fff; }
-        .btn-ejidal:hover { background: #1e4d1e; border-color: #1e4d1e; color: #fff; }
-        .card-ejidal { border: 1px solid #dee2e6; }
-        .card-header-ejidal { background: #2d6a2d; color: #fff; font-weight: 600; }
-        .text-ejidal { color: #2d6a2d; }
+        /* Badge puntos */
+        .badge-puntos-min { font-size:10px; padding:2px 7px; background:#fef3c7; color:#92400e; border:1px solid #fde68a; border-radius:20px; }
+        .badge-puntos-ok  { font-size:10px; padding:2px 7px; background:#d1fae5; color:#065f46; border:1px solid #a7f3d0; border-radius:20px; }
 
-        /* Punto mínimo badge */
-        .badge-puntos-min {
-            font-size: 10px; padding: 2px 7px;
-            background: #fef3c7; color: #92400e;
-            border: 1px solid #fde68a; border-radius: 20px;
-        }
-        .badge-puntos-ok {
-            font-size: 10px; padding: 2px 7px;
-            background: #d1fae5; color: #065f46;
-            border: 1px solid #a7f3d0; border-radius: 20px;
-        }
+        .punto-ind { width:8px; height:8px; border-radius:50%; background:#e2e8f0; display:inline-block; transition:background .2s; }
+        .punto-ind.ok { background:#16a34a; }
+        .punto-ind.dup { background:#f59e0b; }
+        .punto-ind.err { background:#dc2626; }
+
+        .btn-ejidal { background:#2d6a2d; border-color:#2d6a2d; color:#fff; }
+        .btn-ejidal:hover { background:#1e4d1e; border-color:#1e4d1e; color:#fff; }
+        .card-ejidal { border:1px solid #dee2e6; }
+        .card-header-ejidal { background:#2d6a2d; color:#fff; font-weight:600; }
+        .text-ejidal { color:#2d6a2d; }
+
+        /* Tooltip error */
+        .coord-error-msg { font-size:10px; color:#dc2626; margin-top:2px; display:none; }
     </style>
 </head>
 <body>
@@ -144,19 +92,17 @@
 
 <div class="container-fluid">
 <div class="row">
-
 @include('IncludeViews.menu')
 
 <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
 
-<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+<div class="d-flex justify-content-between align-items-center pt-3 pb-2 mb-3 border-bottom">
     <h1 class="h2 text-ejidal">Nueva Parcela</h1>
-    <a href="{{ route('parcelas.index') }}" class="btn btn-ejidal">
+    <a href="{{ route('parcelas.index') }}" class="btn btn-ejidal btn-sm">
         <i class="fas fa-list me-1"></i> Ir al listado
     </a>
 </div>
 
-{{-- Alertas --}}
 @if($error)
 <div class="alert alert-danger"><i class="fas fa-exclamation-circle me-2"></i>{{ $error }}</div>
 @endif
@@ -164,7 +110,7 @@
 <div class="alert alert-success"><i class="fas fa-check-circle me-2"></i>Información guardada correctamente.</div>
 @endif
 
-{{-- ── BUSCADOR PARCELA ── --}}
+{{-- Buscador parcela --}}
 <form method="GET" action="{{ route('parcelas.ver') }}" class="mb-4">
     <div class="input-group">
         <span class="input-group-text"><i class="fas fa-search"></i></span>
@@ -174,11 +120,9 @@
     </div>
 </form>
 
-{{-- ── BUSCADOR EJIDATARIO ── --}}
+{{-- Buscador ejidatario --}}
 <div class="card card-ejidal mb-3">
-    <div class="card-header card-header-ejidal">
-        <i class="fas fa-user-tie me-2"></i>Buscar Ejidatario por Número
-    </div>
+    <div class="card-header card-header-ejidal"><i class="fas fa-user-tie me-2"></i>Buscar Ejidatario</div>
     <div class="card-body">
         <form method="GET">
             <div class="input-group">
@@ -189,7 +133,7 @@
             </div>
         </form>
         @if($ejidatario)
-        <div class="alert alert-success mt-3 mb-0">
+        <div class="alert alert-success mt-2 mb-0">
             <i class="fas fa-check-circle me-2"></i>
             <strong>{{ $ejidatario->nombre }} {{ $ejidatario->apellidoPaterno }} {{ $ejidatario->apellidoMaterno }}</strong>
             <span class="text-muted ms-2">— Ejidatario #{{ $ejidatario->numeroEjidatario }}</span>
@@ -198,24 +142,19 @@
     </div>
 </div>
 
-{{-- ── FORMULARIO PRINCIPAL ── --}}
+{{-- Formulario --}}
 <form method="POST" action="{{ route('parcelas.store') }}" id="form-parcela">
 @csrf
 <input type="hidden" name="numeroEjidatario" value="{{ $ejidatario->numeroEjidatario ?? '' }}">
 <input type="hidden" name="idEjidatario"     value="{{ $ejidatario->idEjidatario ?? '' }}">
 
 @if(!$ejidatario)
-<div class="alert alert-warning">
-    <i class="fas fa-exclamation-triangle me-2"></i>
-    Debes buscar un ejidatario válido antes de guardar.
-</div>
+<div class="alert alert-warning"><i class="fas fa-exclamation-triangle me-2"></i>Debes buscar un ejidatario válido antes de guardar.</div>
 @endif
 
-{{-- ── DATOS DE PARCELA ── --}}
+{{-- Datos parcela --}}
 <div class="card card-ejidal mb-3">
-    <div class="card-header card-header-ejidal">
-        <i class="fas fa-map-marker-alt me-2"></i>Datos de la Parcela
-    </div>
+    <div class="card-header card-header-ejidal"><i class="fas fa-map-marker-alt me-2"></i>Datos de la Parcela</div>
     <div class="card-body">
         <div class="row mb-3">
             <div class="col-md-3">
@@ -224,8 +163,7 @@
             </div>
             <div class="col-md-3">
                 <label class="form-label fw-semibold">Superficie (ha)</label>
-                <input type="text" name="superficie" class="form-control"
-                       placeholder="ej: 3.5" {{ $ejidatario ? '' : 'disabled' }}>
+                <input type="text" name="superficie" class="form-control" placeholder="ej: 3.5" {{ $ejidatario ? '' : 'disabled' }}>
             </div>
             <div class="col-md-3">
                 <label class="form-label fw-semibold">Uso de Suelo</label>
@@ -237,46 +175,59 @@
             </div>
             <div class="col-md-3">
                 <label class="form-label fw-semibold">Ubicación</label>
-                <input type="text" name="ubicacion" class="form-control"
-                       placeholder="ej: Zona norte" {{ $ejidatario ? '' : 'disabled' }}>
+                <input type="text" name="ubicacion" class="form-control" {{ $ejidatario ? '' : 'disabled' }}>
             </div>
         </div>
     </div>
 </div>
 
-{{-- ── COLINDANCIAS ── --}}
+{{-- Colindancias --}}
 <div class="card card-ejidal mb-3">
-    <div class="card-header card-header-ejidal">
-        <i class="fas fa-compass me-2"></i>Colindancias
-    </div>
+    <div class="card-header card-header-ejidal"><i class="fas fa-compass me-2"></i>Colindancias</div>
     <div class="card-body">
         <div class="row g-2">
             @foreach(['norte','sur','este','oeste','noreste','noroeste','sureste','suroeste'] as $c)
             <div class="col-md-3">
                 <label class="form-label fw-semibold" style="font-size:13px">{{ ucfirst($c) }}</label>
-                <input type="text" name="{{ $c }}" class="form-control form-control-sm"
-                       {{ $ejidatario ? '' : 'disabled' }}>
+                <input type="text" name="{{ $c }}" class="form-control form-control-sm" {{ $ejidatario ? '' : 'disabled' }}>
             </div>
             @endforeach
         </div>
     </div>
 </div>
 
-{{-- ── COORDENADAS (sección profesional) ── --}}
+{{-- Coordenadas --}}
 <div class="card card-ejidal mb-3">
     <div class="card-header card-header-ejidal d-flex justify-content-between align-items-center">
         <span><i class="fas fa-map-pin me-2"></i>Coordenadas GPS del Polígono</span>
-        <span id="badge-puntos" class="badge-puntos-min">Mín. 3 puntos para dibujar</span>
+        <span id="badge-puntos" class="badge-puntos-min">Mín. 3 puntos</span>
     </div>
     <div class="card-body">
 
         {{-- Ayuda --}}
         <div class="coord-ayuda">
             <i class="fas fa-info-circle me-2"></i>
-            Ingresa las coordenadas en formato <strong>decimal</strong> (el que da tu celular o GPS).
-            Latitud: <code>19.2933</code> &nbsp;|&nbsp; Longitud: <code>-98.5622</code> (negativo para México).
-            Mínimo 3 puntos para generar el polígono en el mapa.
+            Formato <strong>decimal</strong>. Latitud: <code>19.307519...</code> &nbsp;|&nbsp;
+            Longitud: <code>-98.415076...</code> (negativo para México — se corrige automáticamente si pones positivo).
+            Soporta hasta <strong>15 decimales</strong>. Mín. 3 puntos para el polígono.
         </div>
+
+        {{-- Zona carga de archivo --}}
+        <div id="zona-archivo" onclick="document.getElementById('archivo-input').click()"
+             ondragover="event.preventDefault();this.classList.add('dragover')"
+             ondragleave="this.classList.remove('dragover')"
+             ondrop="manejarDrop(event)">
+            <i class="fas fa-file-upload"></i>
+            <div class="titulo">Cargar coordenadas desde archivo</div>
+            <div class="subtitulo">Arrastra un .TXT o .CSV aquí, o haz clic para seleccionar</div>
+            <div class="subtitulo mt-1" style="color:#6366f1;font-weight:600">
+                Formato: una coordenada por línea &nbsp;|&nbsp; lat,lng &nbsp;o&nbsp; lat lng
+            </div>
+        </div>
+        <input type="file" id="archivo-input" accept=".txt,.csv" onchange="cargarArchivo(this)">
+
+        {{-- Errores de importación --}}
+        <div id="errores-importacion" class="alert alert-warning py-2 mb-2" style="font-size:12px"></div>
 
         <div class="row g-3">
             {{-- Tabla de puntos --}}
@@ -284,15 +235,13 @@
                 <table class="coord-table">
                     <thead>
                         <tr>
-                            <th style="width:50px">Punto</th>
-                            <th>Latitud (X)</th>
-                            <th>Longitud (Y)</th>
+                            <th style="width:55px">Punto</th>
+                            <th>Latitud</th>
+                            <th>Longitud</th>
                             <th style="width:36px"></th>
                         </tr>
                     </thead>
-                    <tbody id="tbody-coordenadas">
-                        {{-- Filas generadas por JS --}}
-                    </tbody>
+                    <tbody id="tbody-coordenadas"></tbody>
                 </table>
 
                 <button type="button" class="btn-add-punto mt-2" onclick="agregarPunto()"
@@ -300,15 +249,16 @@
                     <i class="fas fa-plus me-2"></i>Agregar punto
                 </button>
 
-                {{-- Indicadores de puntos válidos --}}
-                <div class="puntos-counter mt-3">
-                    <span>Puntos capturados:</span>
-                    <span class="count" id="count-puntos">0</span>
-                    <div id="indicadores-puntos" class="d-flex gap-1 ms-1"></div>
+                <div class="d-flex align-items-center gap-2 mt-2" style="font-size:12px;color:#64748b">
+                    Puntos: <strong id="count-puntos">0</strong>
+                    <div id="indicadores" class="d-flex gap-1"></div>
+                    <span id="msg-duplicados" class="text-warning" style="display:none;font-size:11px">
+                        <i class="fas fa-exclamation-triangle"></i> Hay puntos duplicados
+                    </span>
                 </div>
             </div>
 
-            {{-- Mini mapa preview --}}
+            {{-- Mini mapa --}}
             <div class="col-lg-5">
                 <div id="mapa-preview">
                     <div id="mapa-preview-inner"></div>
@@ -317,7 +267,7 @@
                         Ingresa coordenadas<br>para previsualizar
                     </div>
                 </div>
-                <div class="text-center mt-2" style="font-size:11px;color:#94a3b8">
+                <div class="text-center mt-1" style="font-size:11px;color:#94a3b8">
                     <i class="fas fa-eye me-1"></i>Vista previa del polígono
                 </div>
             </div>
@@ -326,22 +276,18 @@
     </div>
 </div>
 
-{{-- ── INFORMACIÓN ADMINISTRATIVA ── --}}
+{{-- Info administrativa --}}
 <div class="card card-ejidal mb-3">
-    <div class="card-header card-header-ejidal">
-        <i class="fas fa-file-alt me-2"></i>Información Administrativa
-    </div>
+    <div class="card-header card-header-ejidal"><i class="fas fa-file-alt me-2"></i>Información Administrativa</div>
     <div class="card-body">
         <div class="row mb-3">
             <div class="col-md-5">
                 <label class="form-label fw-semibold">Número de inscripción RAN</label>
-                <input type="text" name="num_inscripcionRAN" class="form-control"
-                       {{ $ejidatario ? '' : 'disabled' }}>
+                <input type="text" name="num_inscripcionRAN" class="form-control" {{ $ejidatario ? '' : 'disabled' }}>
             </div>
             <div class="col-md-7">
                 <label class="form-label fw-semibold">Clave núcleo agrario</label>
-                <input type="text" name="claveNucleoAgrario" class="form-control"
-                       {{ $ejidatario ? '' : 'disabled' }}>
+                <input type="text" name="claveNucleoAgrario" class="form-control" {{ $ejidatario ? '' : 'disabled' }}>
             </div>
         </div>
         <div class="row">
@@ -352,8 +298,7 @@
             </div>
             <div class="col-md-7">
                 <label class="form-label fw-semibold">Fecha de expedición</label>
-                <input type="date" name="fechaExpedicion" class="form-control"
-                       {{ $ejidatario ? '' : 'disabled' }}>
+                <input type="date" name="fechaExpedicion" class="form-control" {{ $ejidatario ? '' : 'disabled' }}>
             </div>
         </div>
     </div>
@@ -375,209 +320,456 @@
 
 @include('IncludeViews.pie')
 
-{{-- Scripts --}}
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
-// ── Estado ──────────────────────────────────────────────────
 const HABILITADO = {{ $ejidatario ? 'true' : 'false' }};
-let puntos = [];       // [{ letra, lat, lng }]
+
+// ── Numeración profesional tipo RAN ─────────────────────────
+// P1, P2, P3... sin límite
+function etiquetaPunto(n) {
+    return 'P' + n;
+}
+
+// ── Estado ───────────────────────────────────────────────────
+let puntos = []; // [{ num, lat, lng }]
 let mapaIniciado = false;
 let mapaPreview  = null;
 let polyPreview  = null;
 let markersPreview = [];
-let letras = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 
-// ── Inicializar con puntos A-G vacíos ───────────────────────
+// ── Inicializar con 4 puntos vacíos ─────────────────────────
 function init() {
-    for (let i = 0; i < 7; i++) agregarPunto();
+    for (let i = 0; i < 4; i++) agregarPunto(false);
 }
 
-// ── Agregar fila de punto ────────────────────────────────────
-function agregarPunto() {
+// ── Agregar fila ─────────────────────────────────────────────
+function agregarPunto(actualizar = true) {
     if (!HABILITADO) return;
-    const idx    = puntos.length;
-    const letra  = letras[idx] || (idx + 1).toString();
-    const id     = 'punto_' + idx;
-
-    puntos.push({ letra, lat: '', lng: '' });
+    const num = puntos.length + 1;
+    const idx = puntos.length;
+    puntos.push({ num, lat: '', lng: '' });
 
     const tr = document.createElement('tr');
     tr.id = 'fila_' + idx;
     tr.innerHTML = `
         <td>
-            <span class="punto-badge">${letra}</span>
-            <input type="hidden" name="punto[]" value="${letra}">
+            <span class="punto-badge" id="badge_${idx}">${etiquetaPunto(num)}</span>
+            <input type="hidden" name="punto[]" id="nombre_${idx}" value="${etiquetaPunto(num)}">
         </td>
         <td>
-            <input type="number" step="any" min="14" max="33"
-                   name="coordenadaX[]"
-                   class="coord-input" id="lat_${idx}"
-                   placeholder="19.2933..."
+            <input type="text" inputmode="decimal"
+                   name="coordenadaX[]" id="lat_${idx}"
+                   class="coord-input" placeholder="19.307519..."
                    oninput="actualizarPunto(${idx}, 'lat', this.value)"
                    ${HABILITADO ? '' : 'disabled'}>
+            <div class="coord-error-msg" id="err_lat_${idx}"></div>
         </td>
         <td>
-            <input type="number" step="any" min="-120" max="-85"
-                   name="coordenadaY[]"
-                   class="coord-input" id="lng_${idx}"
-                   placeholder="-98.5622..."
+            <input type="text" inputmode="decimal"
+                   name="coordenadaY[]" id="lng_${idx}"
+                   class="coord-input" placeholder="-98.415076..."
                    oninput="actualizarPunto(${idx}, 'lng', this.value)"
                    ${HABILITADO ? '' : 'disabled'}>
+            <div class="coord-error-msg" id="err_lng_${idx}"></div>
         </td>
         <td>
-            ${idx >= 3 ? `<button type="button" class="btn-rm" onclick="quitarPunto(${idx})" title="Quitar punto">
+            ${num > 3 ? `<button type="button" class="btn-rm" onclick="quitarPunto(${idx})" title="Quitar punto">
                 <i class="fas fa-times"></i>
             </button>` : ''}
         </td>`;
     document.getElementById('tbody-coordenadas').appendChild(tr);
-    actualizarIndicadores();
+    if (actualizar) { actualizarMapa(); actualizarIndicadores(); }
 }
 
-// ── Quitar fila ──────────────────────────────────────────────
+// ── Quitar fila y renumerar ───────────────────────────────────
 function quitarPunto(idx) {
     const fila = document.getElementById('fila_' + idx);
     if (fila) fila.remove();
-    puntos[idx] = { letra: puntos[idx].letra, lat: '', lng: '' };
+    puntos.splice(idx, 1);
+    renumerarTodos();
     actualizarMapa();
     actualizarIndicadores();
 }
 
-// ── Actualizar dato de punto ─────────────────────────────────
+// ── Renumerar todos los puntos después de quitar uno ─────────
+function renumerarTodos() {
+    const filas = document.querySelectorAll('#tbody-coordenadas tr');
+    puntos.forEach((p, i) => {
+        p.num = i + 1;
+        const badge = document.getElementById('badge_' + i);
+        const input = document.getElementById('nombre_' + i);
+        if (badge) badge.textContent = etiquetaPunto(i + 1);
+        if (input) input.value = etiquetaPunto(i + 1);
+    });
+}
+
+// ── Actualizar valor de punto ─────────────────────────────────
 function actualizarPunto(idx, campo, valor) {
     if (!puntos[idx]) return;
-    puntos[idx][campo] = valor;
 
-    const inputLat = document.getElementById('lat_' + idx);
-    const inputLng = document.getElementById('lng_' + idx);
-    if (!inputLat || !inputLng) return;
+    // Limpiar y validar
+    const num = parsearCoordenada(valor, campo);
+    const errEl = document.getElementById('err_' + campo + '_' + idx);
+    const input = document.getElementById(campo + '_' + idx);
 
-    const lat = parseFloat(puntos[idx].lat);
-    const lng = parseFloat(puntos[idx].lng);
-    const latOk = !isNaN(lat) && lat >= 14 && lat <= 33;
-    const lngOk = !isNaN(lng) && lng >= -120 && lng <= -85;
+    if (valor === '') {
+        puntos[idx][campo] = '';
+        if (input) input.className = 'coord-input';
+        if (errEl) { errEl.style.display = 'none'; errEl.textContent = ''; }
+    } else if (num === null) {
+        puntos[idx][campo] = '';
+        if (input) input.className = 'coord-input invalido';
+        if (errEl) { errEl.style.display = 'block'; errEl.textContent = 'Valor inválido — solo números decimales'; }
+    } else {
+        // Corrección automática: longitud México debe ser negativa
+        let val = num;
+        if (campo === 'lng' && val > 0 && val <= 120) {
+            val = -val;
+            if (input) input.value = val;
+        }
+        puntos[idx][campo] = val;
+        if (errEl) { errEl.style.display = 'none'; errEl.textContent = ''; }
+        validarRango(idx, campo, val);
+    }
 
-    inputLat.className = 'coord-input ' + (puntos[idx].lat === '' ? '' : latOk ? 'valido' : 'invalido');
-    inputLng.className = 'coord-input ' + (puntos[idx].lng === '' ? '' : lngOk ? 'valido' : 'invalido');
-
+    verificarDuplicados();
     actualizarMapa();
     actualizarIndicadores();
 }
 
-// ── Obtener puntos válidos ───────────────────────────────────
-function puntosValidos() {
-    return puntos.filter(p => {
-        const lat = parseFloat(p.lat);
-        const lng = parseFloat(p.lng);
-        return !isNaN(lat) && !isNaN(lng) && lat >= 14 && lat <= 33 && lng >= -120 && lng <= -85;
-    }).map(p => [parseFloat(p.lat), parseFloat(p.lng)]);
+// ── Parsear coordenada flexible ───────────────────────────────
+function parsearCoordenada(str, campo) {
+    if (typeof str !== 'string') str = String(str);
+    // Quitar espacios, comas al final
+    str = str.trim().replace(/,+$/, '');
+    // Solo permitir dígitos, punto, signo negativo
+    if (!/^-?\d*\.?\d*$/.test(str)) return null;
+    const n = parseFloat(str);
+    if (isNaN(n)) return null;
+    return n;
 }
 
-// ── Actualizar mini mapa ─────────────────────────────────────
+// ── Validar rango geográfico México ──────────────────────────
+function validarRango(idx, campo, val) {
+    const input = document.getElementById(campo + '_' + idx);
+    const errEl = document.getElementById('err_' + campo + '_' + idx);
+    let ok = true;
+    let msg = '';
+
+    if (campo === 'lat' && (val < 14 || val > 33)) {
+        ok = false; msg = 'Latitud fuera de México (14°–33°)';
+    }
+    if (campo === 'lng' && (val < -120 || val > -85)) {
+        ok = false; msg = 'Longitud fuera de México (-85° a -120°)';
+    }
+
+    if (input) input.className = 'coord-input ' + (ok ? 'valido' : 'invalido');
+    if (errEl) { errEl.style.display = ok ? 'none' : 'block'; errEl.textContent = msg; }
+}
+
+// ── Detectar duplicados ───────────────────────────────────────
+function verificarDuplicados() {
+    const claves = {};
+    let hayDup = false;
+
+    puntos.forEach((p, i) => {
+        if (p.lat === '' || p.lng === '') return;
+        const clave = `${p.lat},${p.lng}`;
+        const latEl = document.getElementById('lat_' + i);
+        const lngEl = document.getElementById('lng_' + i);
+
+        if (claves[clave] !== undefined) {
+            hayDup = true;
+            if (latEl) latEl.classList.add('duplicado');
+            if (lngEl) lngEl.classList.add('duplicado');
+            // Marcar el primero también
+            const primerIdx = claves[clave];
+            const latP = document.getElementById('lat_' + primerIdx);
+            const lngP = document.getElementById('lng_' + primerIdx);
+            if (latP) latP.classList.add('duplicado');
+            if (lngP) lngP.classList.add('duplicado');
+        } else {
+            claves[clave] = i;
+            if (latEl && latEl.classList.contains('duplicado')) latEl.classList.remove('duplicado');
+            if (lngEl && lngEl.classList.contains('duplicado')) lngEl.classList.remove('duplicado');
+        }
+    });
+
+    const msgDup = document.getElementById('msg-duplicados');
+    if (msgDup) msgDup.style.display = hayDup ? 'inline' : 'none';
+}
+
+// ── Puntos válidos para el mapa ───────────────────────────────
+function puntosValidos() {
+    return puntos
+        .filter(p => p.lat !== '' && p.lng !== '' &&
+                     !isNaN(p.lat) && !isNaN(p.lng) &&
+                     p.lat >= 14 && p.lat <= 33 &&
+                     p.lng >= -120 && p.lng <= -85)
+        .map(p => [parseFloat(p.lat), parseFloat(p.lng)]);
+}
+
+// ── Actualizar mini mapa ──────────────────────────────────────
 function actualizarMapa() {
     const pts = puntosValidos();
     const hint = document.getElementById('preview-hint');
 
     if (pts.length < 2) {
-        hint.style.display = 'block';
-        if (polyPreview) { mapaPreview?.removeLayer(polyPreview); polyPreview = null; }
+        if (hint) hint.style.display = 'block';
+        if (polyPreview && mapaPreview) { mapaPreview.removeLayer(polyPreview); polyPreview = null; }
         markersPreview.forEach(m => mapaPreview?.removeLayer(m));
         markersPreview = [];
         return;
     }
 
-    hint.style.display = 'none';
+    if (hint) hint.style.display = 'none';
 
-    // Inicializar mapa si aún no existe
     if (!mapaIniciado) {
         mapaPreview = L.map('mapa-preview-inner', {
-            zoomControl: false,
-            attributionControl: false,
-            dragging: true,
-            scrollWheelZoom: true,
+            zoomControl: false, attributionControl: false,
+            dragging: true, scrollWheelZoom: true,
         });
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom:20 }).addTo(mapaPreview);
         mapaIniciado = true;
     }
 
-    // Limpiar markers anteriores
     markersPreview.forEach(m => mapaPreview.removeLayer(m));
     markersPreview = [];
     if (polyPreview) { mapaPreview.removeLayer(polyPreview); polyPreview = null; }
 
-    // Dibujar polígono si hay 3+ puntos
     if (pts.length >= 3) {
-        polyPreview = L.polygon(pts, {
-            color: '#1a4c8b', weight: 2,
-            fillColor: '#2563eb', fillOpacity: .25,
-        }).addTo(mapaPreview);
-        mapaPreview.fitBounds(polyPreview.getBounds(), { padding: [20, 20] });
+        polyPreview = L.polygon(pts, { color:'#1a4c8b', weight:2, fillColor:'#2563eb', fillOpacity:.22 }).addTo(mapaPreview);
+        mapaPreview.fitBounds(polyPreview.getBounds(), { padding:[18,18] });
     } else {
-        // Solo línea con 2 puntos
-        L.polyline(pts, { color: '#1a4c8b', weight: 2 }).addTo(mapaPreview);
-        mapaPreview.fitBounds(L.polyline(pts).getBounds(), { padding: [30, 30] });
+        const linea = L.polyline(pts, { color:'#1a4c8b', weight:2 }).addTo(mapaPreview);
+        mapaPreview.fitBounds(linea.getBounds(), { padding:[30,30] });
     }
 
-    // Markers con letra
-    pts.forEach((pt, i) => {
-        const letra = puntos.filter(p => {
-            const lat = parseFloat(p.lat), lng = parseFloat(p.lng);
-            return !isNaN(lat) && !isNaN(lng);
-        })[i]?.letra || String.fromCharCode(65 + i);
-
+    // Markers numerados P1, P2...
+    let pNum = 0;
+    puntos.forEach((p, i) => {
+        if (p.lat === '' || p.lng === '') return;
+        const lat = parseFloat(p.lat), lng = parseFloat(p.lng);
+        if (isNaN(lat) || isNaN(lng) || lat < 14 || lat > 33 || lng < -120 || lng > -85) return;
+        pNum++;
         const icon = L.divIcon({
-            className: '',
-            html: `<div style="background:#1a4c8b;color:#fff;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.3)">${letra}</div>`,
-            iconAnchor: [11, 11],
+            className:'',
+            html:`<div style="background:#1a4c8b;color:#fff;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.3)">${etiquetaPunto(pNum)}</div>`,
+            iconAnchor:[11,11],
         });
-        markersPreview.push(L.marker(pt, { icon }).addTo(mapaPreview));
+        markersPreview.push(L.marker([lat,lng],{icon}).addTo(mapaPreview));
     });
 }
 
-// ── Indicadores de puntos ────────────────────────────────────
+// ── Indicadores de estado ─────────────────────────────────────
 function actualizarIndicadores() {
     const pts = puntosValidos();
-    const count = document.getElementById('count-puntos');
     const badge = document.getElementById('badge-puntos');
-    const indicadores = document.getElementById('indicadores-puntos');
+    const count = document.getElementById('count-puntos');
+    const indDiv = document.getElementById('indicadores');
 
-    count.textContent = pts.length;
+    if (count) count.textContent = pts.length;
 
-    // Badge
-    if (pts.length >= 3) {
-        badge.className = 'badge-puntos-ok';
-        badge.textContent = '✓ Polígono listo';
-    } else {
-        badge.className = 'badge-puntos-min';
-        badge.textContent = `Mín. 3 puntos (faltan ${3 - pts.length})`;
+    if (badge) {
+        if (pts.length >= 3) { badge.className = 'badge-puntos-ok'; badge.textContent = '✓ Polígono listo'; }
+        else { badge.className = 'badge-puntos-min'; badge.textContent = `Faltan ${3 - pts.length} punto(s)`; }
     }
 
-    // Indicadores visuales
-    const total = puntos.filter(p => {
-        const fila = document.getElementById('fila_' + puntos.indexOf(p));
-        return fila !== null;
-    }).length;
-
-    indicadores.innerHTML = '';
-    for (let i = 0; i < Math.min(total, 10); i++) {
-        const dot = document.createElement('span');
-        dot.className = 'punto-valido-indicator' + (i < pts.length ? ' ok' : '');
-        indicadores.appendChild(dot);
+    if (indDiv) {
+        indDiv.innerHTML = '';
+        puntos.forEach((p, i) => {
+            const dot = document.createElement('span');
+            const lat = parseFloat(p.lat), lng = parseFloat(p.lng);
+            const esValido = !isNaN(lat) && !isNaN(lng) && lat>=14 && lat<=33 && lng>=-120 && lng<=-85;
+            const esVacio  = p.lat === '' && p.lng === '';
+            dot.className = 'punto-ind ' + (esVacio ? '' : esValido ? 'ok' : 'err');
+            dot.title = etiquetaPunto(i+1);
+            indDiv.appendChild(dot);
+        });
     }
 }
 
-// ── Validar antes de enviar ──────────────────────────────────
+// ══════════════════════════════════════════════════════════════
+//  CARGA DESDE ARCHIVO TXT / CSV
+// ══════════════════════════════════════════════════════════════
+
+function manejarDrop(event) {
+    event.preventDefault();
+    document.getElementById('zona-archivo').classList.remove('dragover');
+    const file = event.dataTransfer.files[0];
+    if (file) procesarArchivo(file);
+}
+
+function cargarArchivo(input) {
+    const file = input.files[0];
+    if (file) procesarArchivo(file);
+}
+
+function procesarArchivo(file) {
+    const ext = file.name.split('.').pop().toLowerCase();
+    if (!['txt','csv'].includes(ext)) {
+        mostrarErroresImportacion(['Solo se aceptan archivos .TXT o .CSV']);
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const texto = e.target.result;
+        importarCoordenadas(texto, file.name);
+    };
+    reader.readAsText(file);
+}
+
+function importarCoordenadas(texto, nombreArchivo) {
+    const lineas = texto.split(/\r?\n/).filter(l => l.trim() !== '');
+    const errores = [];
+    const nuevasPuntos = [];
+
+    lineas.forEach((linea, i) => {
+        linea = linea.trim();
+
+        // Saltar líneas de encabezado comunes
+        if (/^(lat|lng|x|y|punto|coord|#)/i.test(linea)) return;
+
+        // Separadores: coma, punto y coma, tab, espacio
+        const partes = linea.split(/[,;\t ]+/).filter(p => p !== '');
+
+        if (partes.length < 2) {
+            errores.push(`Línea ${i+1}: "${linea}" — formato inválido (necesita lat y lng)`);
+            return;
+        }
+
+        const lat = parseFloat(partes[0].replace(',', '.'));
+        const lng = parseFloat(partes[1].replace(',', '.'));
+
+        if (isNaN(lat) || isNaN(lng)) {
+            errores.push(`Línea ${i+1}: "${linea}" — no son números válidos`);
+            return;
+        }
+
+        // Corrección automática de longitud positiva
+        let lngFinal = lng;
+        if (lng > 0 && lng <= 120) lngFinal = -lng;
+
+        // Validar rango México
+        if (lat < 14 || lat > 33) {
+            errores.push(`Línea ${i+1}: Latitud ${lat} fuera del rango de México (14°-33°)`);
+            return;
+        }
+        if (lngFinal < -120 || lngFinal > -85) {
+            errores.push(`Línea ${i+1}: Longitud ${lngFinal} fuera del rango de México`);
+            return;
+        }
+
+        // Verificar duplicado con los ya cargados
+        const dup = nuevasPuntos.find(p => p.lat === lat && p.lng === lngFinal);
+        if (dup) {
+            errores.push(`Línea ${i+1}: Punto duplicado (${lat}, ${lngFinal})`);
+            return;
+        }
+
+        nuevasPuntos.push({ lat, lng: lngFinal });
+    });
+
+    // Mostrar errores si los hay (pero continuar con los válidos)
+    if (errores.length > 0) {
+        mostrarErroresImportacion(errores);
+    } else {
+        ocultarErroresImportacion();
+    }
+
+    if (nuevasPuntos.length === 0) {
+        mostrarErroresImportacion([...errores, 'No se encontraron coordenadas válidas en el archivo.']);
+        return;
+    }
+
+    // Limpiar tabla actual
+    document.getElementById('tbody-coordenadas').innerHTML = '';
+    puntos = [];
+
+    // Cargar puntos nuevos
+    nuevasPuntos.forEach(p => {
+        const num = puntos.length + 1;
+        const idx = puntos.length;
+        puntos.push({ num, lat: p.lat, lng: p.lng });
+
+        const tr = document.createElement('tr');
+        tr.id = 'fila_' + idx;
+        tr.innerHTML = `
+            <td>
+                <span class="punto-badge" id="badge_${idx}">${etiquetaPunto(num)}</span>
+                <input type="hidden" name="punto[]" id="nombre_${idx}" value="${etiquetaPunto(num)}">
+            </td>
+            <td>
+                <input type="text" inputmode="decimal" name="coordenadaX[]" id="lat_${idx}"
+                       class="coord-input valido" value="${p.lat}"
+                       oninput="actualizarPunto(${idx}, 'lat', this.value)"
+                       ${HABILITADO ? '' : 'disabled'}>
+            </td>
+            <td>
+                <input type="text" inputmode="decimal" name="coordenadaY[]" id="lng_${idx}"
+                       class="coord-input valido" value="${p.lng}"
+                       oninput="actualizarPunto(${idx}, 'lng', this.value)"
+                       ${HABILITADO ? '' : 'disabled'}>
+            </td>
+            <td>
+                ${num > 3 ? `<button type="button" class="btn-rm" onclick="quitarPunto(${idx})" title="Quitar punto">
+                    <i class="fas fa-times"></i>
+                </button>` : ''}
+            </td>`;
+        document.getElementById('tbody-coordenadas').appendChild(tr);
+    });
+
+    // Actualizar zona de archivo
+    const zona = document.getElementById('zona-archivo');
+    zona.innerHTML = `
+        <i class="fas fa-check-circle" style="color:#16a34a"></i>
+        <div class="titulo" style="color:#16a34a">${nombreArchivo}</div>
+        <div class="subtitulo">${nuevasPuntos.length} coordenadas cargadas correctamente</div>
+        <div class="subtitulo mt-1" style="color:#6366f1;cursor:pointer" onclick="document.getElementById('archivo-input').click()">
+            Cambiar archivo
+        </div>`;
+
+    actualizarMapa();
+    actualizarIndicadores();
+}
+
+function mostrarErroresImportacion(errores) {
+    const div = document.getElementById('errores-importacion');
+    div.style.display = 'block';
+    div.innerHTML = '<strong><i class="fas fa-exclamation-triangle me-1"></i>Advertencias al importar:</strong><ul class="mb-0 mt-1">'
+        + errores.map(e => `<li>${e}</li>`).join('')
+        + '</ul>';
+}
+
+function ocultarErroresImportacion() {
+    document.getElementById('errores-importacion').style.display = 'none';
+}
+
+// ── Validar antes de enviar ───────────────────────────────────
 document.getElementById('form-parcela')?.addEventListener('submit', function(e) {
     const pts = puntosValidos();
     if (pts.length > 0 && pts.length < 3) {
         e.preventDefault();
-        alert('Si capturas coordenadas, necesitas mínimo 3 puntos válidos para formar un polígono.');
+        alert('Si capturas coordenadas, necesitas mínimo 3 puntos válidos para el polígono.');
         return;
+    }
+    // Verificar duplicados
+    const claves = new Set();
+    for (const p of pts) {
+        const c = `${p[0]},${p[1]}`;
+        if (claves.has(c)) {
+            e.preventDefault();
+            alert('Hay coordenadas duplicadas. Revisa los puntos marcados en amarillo.');
+            return;
+        }
+        claves.add(c);
     }
 });
 
-// ── Iniciar ──────────────────────────────────────────────────
+// ── Iniciar ───────────────────────────────────────────────────
 init();
 </script>
 

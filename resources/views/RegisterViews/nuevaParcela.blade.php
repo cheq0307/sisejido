@@ -411,7 +411,7 @@ function agregarPunto() {
             <input type="hidden" name="punto[]" value="${letra}">
         </td>
         <td>
-            <input type="number" step="0.0000001" min="14" max="33"
+            <input type="number" step="any" min="14" max="33"
                    name="coordenadaX[]"
                    class="coord-input" id="lat_${idx}"
                    placeholder="19.2933..."
@@ -419,7 +419,7 @@ function agregarPunto() {
                    ${HABILITADO ? '' : 'disabled'}>
         </td>
         <td>
-            <input type="number" step="0.0000001" min="-120" max="-85"
+            <input type="number" step="any" min="-120" max="-85"
                    name="coordenadaY[]"
                    class="coord-input" id="lng_${idx}"
                    placeholder="-98.5622..."

@@ -19,8 +19,8 @@ class Coordenada extends Model
     ];
 
     protected $casts = [
-        'coordenadaX' => 'float',
-        'coordenadaY' => 'float',
+        'coordenadaX' => 'string', // string para preservar precisión total
+        'coordenadaY' => 'string',
         'orden'       => 'integer',
     ];
 

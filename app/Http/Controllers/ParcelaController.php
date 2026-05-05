@@ -195,20 +195,18 @@ class ParcelaController extends Controller
                 }
             }
 
-            // Colindancias
-            if ($request->filled('norte')) {
-                Colindancia::create([
-                    'idParcela' => $parcela->idParcela,
-                    'norte'     => $request->norte,
-                    'sur'       => $request->sur,
-                    'este'      => $request->este,
-                    'oeste'     => $request->oeste,
-                    'noreste'   => $request->noreste,
-                    'noroeste'  => $request->noroeste,
-                    'sureste'   => $request->sureste,
-                    'suroeste'  => $request->suroeste,
-                ]);
-            }
+            // Colindancias — siempre guardar (campos nullable)
+            Colindancia::create([
+                'idParcela' => $parcela->idParcela,
+                'norte'     => $request->norte    ?: null,
+                'sur'       => $request->sur      ?: null,
+                'este'      => $request->este     ?: null,
+                'oeste'     => $request->oeste    ?: null,
+                'noreste'   => $request->noreste  ?: null,
+                'noroeste'  => $request->noroeste ?: null,
+                'sureste'   => $request->sureste  ?: null,
+                'suroeste'  => $request->suroeste ?: null,
+            ]);
 
             // Info administrativa
             if ($request->filled('num_inscripcionRAN')) {

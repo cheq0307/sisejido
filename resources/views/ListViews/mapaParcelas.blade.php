@@ -645,13 +645,13 @@ document.querySelectorAll('input[name="capa"]').forEach(r => {
     });
 });
 
-document.getElementById('chk-parcelas').addEventListener('change', function() {
+document.getElementById('chk-parcelas')?.addEventListener('change', function() {
     this.checked ? map.addLayer(layerPoligonos) : map.removeLayer(layerPoligonos);
 });
-document.getElementById('chk-etiquetas').addEventListener('change', function() {
+document.getElementById('chk-etiquetas')?.addEventListener('change', function() {
     this.checked ? map.addLayer(layerEtiquetas) : map.removeLayer(layerEtiquetas);
 });
-document.getElementById('chk-perimetro').addEventListener('change', function() {
+document.getElementById('chk-perimetro')?.addEventListener('change', function() {
     this.checked ? map.addLayer(layerPerimetro) : map.removeLayer(layerPerimetro);
 });
 

@@ -1,0 +1,76 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\ApoyoSocial;
+use App\Models\Ejidatario;
+use Illuminate\Http\Request;
+
+class ApoyoSocialController extends Controller
+{
+    public function index()
+    {
+        $apoyos = ApoyoSocial::with('ejidatario')->orderBy('fecha_entrega', 'desc')->get();
+        return view('ListViews.listadoApoyos', compact('apoyos'));
+    }
+
+    public function create()
+    {
+        $ejidatarios = Ejidatario::where('idEstatus', 1)->orderBy('apellidoPaterno')->get();
+        return view('RegisterViews.nuevoApoyo', compact('ejidatarios'));
+    }
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            'idEjidatario'        => 'required|exists:ejidatarios,idEjidatario',
+            'tipo_apoyo'          => 'required|string|max:100',
+            'fecha_entrega'       => 'required|date',
+            'nombre_representante'=> 'required|string|max:100',
+            'monto'               => 'nullable|numeric|min:0',
+            'cantidad'            => 'nullable|integer|min:0',
+            'num_beneficiarios'   => 'nullable|integer|min:1',
+            'estatus'             => 'required|in:entregado,pendiente,cancelado',
+        ]);
+
+        ApoyoSocial::create($request->all());
+
+        return redirect()->route('apoyos.index')
+                         ->with('success', 'Apoyo registrado correctamente.');
+    }
+
+    public function edit($id)
+    {
+        $apoyo = ApoyoSocial::findOrFail($id);
+        $ejidatarios = Ejidatario::where('idEstatus', 1)->orderBy('apellidoPaterno')->get();
+        return view('EditViews.editarApoyo', compact('apoyo', 'ejidatarios'));
+    }
+
+    public function update(Request $request, $id)
+    {
+        $apoyo = ApoyoSocial::findOrFail($id);
+
+        $request->validate([
+            'idEjidatario'        => 'required|exists:ejidatarios,idEjidatario',
+            'tipo_apoyo'          => 'required|string|max:100',
+            'fecha_entrega'       => 'required|date',
+            'nombre_representante'=> 'required|string|max:100',
+            'monto'               => 'nullable|numeric|min:0',
+            'cantidad'            => 'nullable|integer|min:0',
+            'num_beneficiarios'   => 'nullable|integer|min:1',
+            'estatus'             => 'required|in:entregado,pendiente,cancelado',
+        ]);
+
+        $apoyo->update($request->all());
+
+        return redirect()->route('apoyos.index')
+                         ->with('success', 'Apoyo actualizado correctamente.');
+    }
+
+    public function destroy($id)
+    {
+        ApoyoSocial::findOrFail($id)->delete();
+        return redirect()->route('apoyos.index')
+                         ->with('success', 'Apoyo eliminado.');
+    }
+}

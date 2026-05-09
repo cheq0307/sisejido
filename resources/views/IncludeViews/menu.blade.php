@@ -207,35 +207,31 @@
           </li>
 
           <!-- Apoyos -->
-          <li class="nav-item">
-            <a class="nav-link" data-bs-toggle="collapse" href="#apoyosMenu">
-              <i class="fas fa-hands-helping"></i> Apoyos Sociales
-              <i class="fas fa-angle-down float-end mt-1"></i>
-            </a>
-            <div class="collapse" id="apoyosMenu">
-              <ul class="nav flex-column submenu">
-                <li class="nav-item"><a class="nav-link" href="#"><i class="fas fa-plus-circle"></i> Nuevo Apoyo</a></li>
-                <li class="nav-item"><a class="nav-link" href="#"><i class="fas fa-list"></i> Registros</a></li>
-                <li class="nav-item"><a class="nav-link" href="#"><i class="fas fa-chart-pie"></i> Reportes</a></li>
-              </ul>
-            </div>
-          </li>
-
-          <li class="nav-item">
-            <a class="nav-link" href="#">
-              <i class="fas fa-chart-bar"></i> Reportes
-            </a>
-          </li>
-
-          <li class="nav-item">
-            <a class="nav-link" href="#">
-              <i class="fas fa-cogs"></i> Configuración
-            </a>
-          </li>
-
+<li class="nav-item">
+    <a class="nav-link" data-bs-toggle="collapse" href="#apoyosMenu">
+        <i class="fas fa-hand-holding-heart me-1"></i> Apoyos Sociales
+        <i class="fas fa-angle-down float-end mt-1"></i>
+    </a>
+    <div class="collapse" id="apoyosMenu">
+        <ul class="nav flex-column submenu">
+            <li class="nav-item">
+                <a class="nav-link" href="{{ route('apoyos.create') }}">
+                    <i class="fas fa-plus-circle"></i> Nuevo Apoyo
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ route('apoyos.index') }}">
+                    <i class="fas fa-list"></i> Registros
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">
+                    <i class="fas fa-chart-pie"></i> Reportes
+                </a>
+            </li>
         </ul>
-                </div>
-            </div>
+    </div>
+</li>
 
  
 

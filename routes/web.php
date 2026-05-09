@@ -8,6 +8,7 @@ use App\Http\Controllers\ArticuloController;
 use App\Http\Controllers\RecursosController;
 use App\Http\Controllers\EntradaController;
 use App\Http\Controllers\SalidaController;
+use App\Http\Controllers\ApoyoSocialController;
 
 
 Route::get('/', function () {
@@ -108,3 +109,13 @@ Route::delete('/api/parcelas/{id}/poligono', [ParcelaController::class, 'borrarP
 // GeoJSON para carga dinámica (opcional, el mapa ya carga con el blade)
 Route::get('/api/parcelas/geojson',          [ParcelaController::class, 'apiGeoJSON']);
 Route::delete('/parcelas/{id}', [ParcelaController::class, 'destroy'])->name('parcelas.destroy');
+
+
+
+// Apoyos Sociales
+Route::get('/apoyos',            [ApoyoSocialController::class, 'index'])->name('apoyos.index');
+Route::get('/apoyos/nuevo',      [ApoyoSocialController::class, 'create'])->name('apoyos.create');
+Route::post('/apoyos',           [ApoyoSocialController::class, 'store'])->name('apoyos.store');
+Route::get('/apoyos/{id}/editar',[ApoyoSocialController::class, 'edit'])->name('apoyos.edit');
+Route::put('/apoyos/{id}',       [ApoyoSocialController::class, 'update'])->name('apoyos.update');
+Route::delete('/apoyos/{id}',    [ApoyoSocialController::class, 'destroy'])->name('apoyos.destroy');

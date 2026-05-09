@@ -413,7 +413,7 @@ const PARCELAS_BD = @json($parcelasJs);
 const CSRF        = document.querySelector('meta[name="csrf-token"]').content;
 
 const CAPAS = {
-    osm:        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom:20, attribution:'© OpenStreetMap' }),
+    osm: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom:19, attribution:'© OpenStreetMap' }),
     sat_google: L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',  { maxZoom:20, attribution:'© Google' }),
     sat_esri:   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom:19, attribution:'© ESRI' }),
 };
@@ -431,6 +431,7 @@ const map = L.map('mapa', {
     zoomControl: false,
     zoomSnap: 0.5,
     zoomDelta: 0.5,
+    maxZoom: 19,
     wheelPxPerZoomLevel: 60,
     layers: [CAPAS.osm],
 });

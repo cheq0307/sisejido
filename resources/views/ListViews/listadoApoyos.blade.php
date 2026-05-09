@@ -91,7 +91,7 @@
                             </td>
                             <td>
                                 @if($a->estatus === 'aprobado')
-    <span class="badge bg-info text-dark">Aprobado</span>
+        <span class="badge bg-success">Aprobado</span>
 @elseif($a->estatus === 'entregado')
     <span class="badge bg-success">Entregado</span>
 @endif

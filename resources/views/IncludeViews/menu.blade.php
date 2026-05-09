@@ -232,8 +232,19 @@
         </ul>
     </div>
 </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#">
+              <i class="fas fa-cogs"></i> Configuración
+            </a>
+          </li>
 
- 
+        </ul>
+      </div>
+    </div>
+    <!-- FIN sidebar col -->
+
+    <!-- INICIO columna de contenido principal -->
+    <div class="col-md-9 col-lg-10 ms-sm-auto px-md-4 main-content"></div>
 
 
 

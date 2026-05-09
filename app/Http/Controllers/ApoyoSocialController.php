@@ -30,7 +30,7 @@ class ApoyoSocialController extends Controller
             'monto'               => 'nullable|numeric|min:0',
             'cantidad'            => 'nullable|integer|min:0',
             'num_beneficiarios'   => 'nullable|integer|min:1',
-            'estatus'             => 'required|in:entregado,pendiente,cancelado',
+            'estatus'             => 'required|in:entregado,pendiente,cancelado,aprobado',
         ]);
 
         ApoyoSocial::create($request->all());
@@ -84,7 +84,7 @@ class ApoyoSocialController extends Controller
     }
 
     $apoyos = $query->orderBy('fecha_entrega', 'desc')->get();
-    return view('ListViews.reporteApoyos', compact('apoyos'));
+    return view('ReportViews.reporteApoyos', compact('apoyos'));
 }
 
     public function destroy($id)

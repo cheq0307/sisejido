@@ -4,8 +4,8 @@
 <body>
 @include('IncludeViews.menu')
 
-<div class="container mt-4">
-    <div class="card card-ejidal shadow">
+<div class="mt-4">
+rd card-ejidal shadow">
         <div class="card-header card-header-ejidal d-flex justify-content-between align-items-center">
             <h4 class="mb-0"><i class="fas fa-hand-holding-heart me-2"></i>Apoyos Sociales</h4>
             <a href="{{ route('apoyos.create') }}" class="btn btn-light btn-sm">
@@ -104,8 +104,7 @@
                         @endforelse
                     </tbody>
                 </table>
-            </div>
-
+            <div class="mt-4">
         </div>
     </div>
 </div>

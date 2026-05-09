@@ -4,7 +4,7 @@
 <body>
 @include('IncludeViews.menu')
 
-<div class="container mt-4">
+<div class="mt-4">
     <div class="card card-ejidal shadow">
         <div class="card-header card-header-ejidal">
             <h4 class="mb-0"><i class="fas fa-hand-holding-heart me-2"></i>Nuevo Apoyo Social</h4>

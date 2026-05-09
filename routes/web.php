@@ -110,7 +110,7 @@ Route::delete('/api/parcelas/{id}/poligono', [ParcelaController::class, 'borrarP
 Route::get('/api/parcelas/geojson',          [ParcelaController::class, 'apiGeoJSON']);
 Route::delete('/parcelas/{id}', [ParcelaController::class, 'destroy'])->name('parcelas.destroy');
 
-
+Route::get('/apoyos/reporte', [ApoyoSocialController::class, 'reporte'])->name('apoyos.reporte');
 
 // Apoyos Sociales
 Route::get('/apoyos',            [ApoyoSocialController::class, 'index'])->name('apoyos.index');
@@ -119,3 +119,4 @@ Route::post('/apoyos',           [ApoyoSocialController::class, 'store'])->name(
 Route::get('/apoyos/{id}/editar',[ApoyoSocialController::class, 'edit'])->name('apoyos.edit');
 Route::put('/apoyos/{id}',       [ApoyoSocialController::class, 'update'])->name('apoyos.update');
 Route::delete('/apoyos/{id}',    [ApoyoSocialController::class, 'destroy'])->name('apoyos.destroy');
+

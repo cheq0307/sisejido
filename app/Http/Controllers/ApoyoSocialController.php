@@ -66,6 +66,26 @@ class ApoyoSocialController extends Controller
         return redirect()->route('apoyos.index')
                          ->with('success', 'Apoyo actualizado correctamente.');
     }
+    public function reporte(Request $request)
+{
+    $query = ApoyoSocial::with('ejidatario');
+
+    if ($request->estatus) {
+        $query->where('estatus', $request->estatus);
+    }
+    if ($request->tipo_apoyo) {
+        $query->where('tipo_apoyo', 'like', '%' . $request->tipo_apoyo . '%');
+    }
+    if ($request->fecha_desde) {
+        $query->where('fecha_entrega', '>=', $request->fecha_desde);
+    }
+    if ($request->fecha_hasta) {
+        $query->where('fecha_entrega', '<=', $request->fecha_hasta);
+    }
+
+    $apoyos = $query->orderBy('fecha_entrega', 'desc')->get();
+    return view('ListViews.reporteApoyos', compact('apoyos'));
+}
 
     public function destroy($id)
     {

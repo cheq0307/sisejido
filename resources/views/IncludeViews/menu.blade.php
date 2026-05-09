@@ -43,7 +43,6 @@
                             </ul>
                         </div>
                     </li>
-[]
                     <!-- Faenas -->
                     <li class="nav-item">
                         <a class="nav-link" data-bs-toggle="collapse" href="#faenasMenu">

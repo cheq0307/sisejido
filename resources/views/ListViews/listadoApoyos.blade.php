@@ -89,6 +89,13 @@
                                     <span class="badge bg-danger">Cancelado</span>
                                 @endif
                             </td>
+                            <td>
+                                @if($a->estatus === 'aprobado')
+    <span class="badge bg-info text-dark">Aprobado</span>
+@elseif($a->estatus === 'entregado')
+    <span class="badge bg-success">Entregado</span>
+@endif
+                            </td>
                             <td class="text-center">
                                 <a href="{{ route('apoyos.edit', $a->idApoyo) }}"
                                    class="btn btn-sm btn-ejidal">

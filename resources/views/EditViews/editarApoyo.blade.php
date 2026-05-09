@@ -101,6 +101,8 @@
                             <option value="pendiente"  {{ $apoyo->estatus == 'pendiente'  ? 'selected' : '' }}>Pendiente</option>
                             <option value="entregado"  {{ $apoyo->estatus == 'entregado'  ? 'selected' : '' }}>Entregado</option>
                             <option value="cancelado"  {{ $apoyo->estatus == 'cancelado'  ? 'selected' : '' }}>Cancelado</option>
+                            <option value="aprobado"   {{ $apoyo->estatus == 'aprobado'   ? 'selected' : '' }}>Aprobado</option>
+
                         </select>
                     </div>
 

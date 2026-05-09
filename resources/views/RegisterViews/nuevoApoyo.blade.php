@@ -100,6 +100,8 @@
                             <option value="pendiente"  {{ old('estatus','pendiente') == 'pendiente'  ? 'selected' : '' }}>Pendiente</option>
                             <option value="entregado"  {{ old('estatus') == 'entregado'  ? 'selected' : '' }}>Entregado</option>
                             <option value="cancelado"  {{ old('estatus') == 'cancelado'  ? 'selected' : '' }}>Cancelado</option>
+                            <option value="aprobado"   {{ old('estatus') == 'aprobado'   ? 'selected' : '' }}>Aprobado</option>
+
                         </select>
                     </div>
 

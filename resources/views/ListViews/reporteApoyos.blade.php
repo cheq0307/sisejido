@@ -55,6 +55,8 @@
                         <option value="entregado"  {{ request('estatus') == 'entregado'  ? 'selected' : '' }}>Entregado</option>
                         <option value="pendiente"  {{ request('estatus') == 'pendiente'  ? 'selected' : '' }}>Pendiente</option>
                         <option value="cancelado"  {{ request('estatus') == 'cancelado'  ? 'selected' : '' }}>Cancelado</option>
+                        <option value="aprobado"   {{ request('estatus') == 'aprobado'   ? 'selected' : '' }}>Aprobado</option>
+
                     </select>
                 </div>
                 <div class="col-md-3">

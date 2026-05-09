@@ -220,6 +220,6 @@
             </div>
         </div>
         <!-- FIN sidebar -->
+<div class="col-md-9 col-lg-10 ms-sm-auto px-md-4 main-content">
 
-        <!-- INICIO columna contenido principal -->
-        <div class="col-md-9 col-lg-10 ms-sm-auto px-md-4 main-content">[]
+    

@@ -58,7 +58,7 @@ class ApoyoSocialController extends Controller
             'monto'               => 'nullable|numeric|min:0',
             'cantidad'            => 'nullable|integer|min:0',
             'num_beneficiarios'   => 'nullable|integer|min:1',
-            'estatus'             => 'required|in:entregado,pendiente,cancelado',
+            'estatus'             => 'required|in:entregado,pendiente,cancelado,aprobado',
         ]);
 
         $apoyo->update($request->all());

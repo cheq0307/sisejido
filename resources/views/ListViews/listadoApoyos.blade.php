@@ -81,7 +81,9 @@
                             <td>{{ $a->nombre_representante }}</td>
                             <td class="text-center">{{ $a->num_beneficiarios }}</td>
                             <td class="text-center">
-                                @if($a->estatus === 'entregado')
+                                @if($a->estatus === 'aprobado')
+                                    <span class="badge bg-info text-dark">Aprobado</span>
+                                @elseif($a->estatus === 'entregado')
                                     <span class="badge bg-success">Entregado</span>
                                 @elseif($a->estatus === 'pendiente')
                                     <span class="badge bg-warning text-dark">Pendiente</span>

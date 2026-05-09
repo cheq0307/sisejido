@@ -1,7 +1,23 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nuevo Apoyo Social</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ asset('css/estiloPrincipal.css') }}">
+</head>
+<body>
+
 @include('IncludeViews.cabeza')
+
+<div class="container-fluid">
+<div class="row">
 @include('IncludeViews.menu')
 
-<div class="mt-4">
+<main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+
     <div class="card card-ejidal shadow">
         <div class="card-header card-header-ejidal">
             <h4 class="mb-0"><i class="fas fa-hand-holding-heart me-2"></i>Nuevo Apoyo Social</h4>
@@ -45,29 +61,25 @@
                     <div class="col-md-12">
                         <label class="form-label fw-bold">Descripción</label>
                         <input type="text" name="descripcion" class="form-control"
-                               placeholder="Detalle del apoyo"
-                               value="{{ old('descripcion') }}">
+                               placeholder="Detalle del apoyo" value="{{ old('descripcion') }}">
                     </div>
 
                     <div class="col-md-4">
                         <label class="form-label fw-bold">Monto ($)</label>
                         <input type="number" name="monto" class="form-control"
-                               step="0.01" min="0" placeholder="0.00"
-                               value="{{ old('monto', 0) }}">
+                               step="0.01" min="0" placeholder="0.00" value="{{ old('monto', 0) }}">
                     </div>
 
                     <div class="col-md-4">
                         <label class="form-label fw-bold">Cantidad</label>
                         <input type="number" name="cantidad" class="form-control"
-                               min="0" placeholder="0"
-                               value="{{ old('cantidad', 0) }}">
+                               min="0" placeholder="0" value="{{ old('cantidad', 0) }}">
                     </div>
 
                     <div class="col-md-4">
                         <label class="form-label fw-bold">Unidad de Medida</label>
                         <input type="text" name="unidad_medida" class="form-control"
-                               placeholder="kg, litros, pza, pesos..."
-                               value="{{ old('unidad_medida') }}">
+                               placeholder="kg, litros, pza, pesos..." value="{{ old('unidad_medida') }}">
                     </div>
 
                     <div class="col-md-4">
@@ -79,14 +91,13 @@
                     <div class="col-md-4">
                         <label class="form-label fw-bold">Ciclo <small class="text-muted fw-normal">(opcional)</small></label>
                         <input type="text" name="ciclo" class="form-control"
-                               placeholder="Ej: 2025-PV, 2025-OI"
-                               value="{{ old('ciclo') }}">
+                               placeholder="Ej: 2025-PV, 2025-OI" value="{{ old('ciclo') }}">
                     </div>
 
                     <div class="col-md-4">
                         <label class="form-label fw-bold">Estatus <span class="text-danger">*</span></label>
                         <select name="estatus" class="form-select" required>
-                            <option value="pendiente"  {{ old('estatus') == 'pendiente'  ? 'selected' : '' }}>Pendiente</option>
+                            <option value="pendiente"  {{ old('estatus','pendiente') == 'pendiente'  ? 'selected' : '' }}>Pendiente</option>
                             <option value="entregado"  {{ old('estatus') == 'entregado'  ? 'selected' : '' }}>Entregado</option>
                             <option value="cancelado"  {{ old('estatus') == 'cancelado'  ? 'selected' : '' }}>Cancelado</option>
                         </select>
@@ -95,8 +106,7 @@
                     <div class="col-md-6">
                         <label class="form-label fw-bold">Dependencia / Institución</label>
                         <input type="text" name="dependencia" class="form-control"
-                               placeholder="Ej: SADER, SEDESOL, BIENESTAR..."
-                               value="{{ old('dependencia') }}">
+                               placeholder="Ej: SADER, SEDESOL, BIENESTAR..." value="{{ old('dependencia') }}">
                     </div>
 
                     <div class="col-md-6">
@@ -131,6 +141,13 @@
             </form>
         </div>
     </div>
+
+</main>
+</div>
 </div>
 
 @include('IncludeViews.pie')
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

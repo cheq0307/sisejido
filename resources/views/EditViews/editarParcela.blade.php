@@ -2,22 +2,22 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Ejido San Rafael Ixtapalucan - Editar Parcela</title>
-
-    <!-- Bootstrap -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nuevo Apoyo Social</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="{{ asset('css/estiloNuevoE.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ asset('css/estiloPrincipal.css') }}">
 </head>
 <body>
 
 @include('IncludeViews.cabeza')
 
 <div class="container-fluid">
-    <div class="row">
+<div class="row">
+@include('IncludeViews.menu')
 
-        @include('IncludeViews.menu')
+<main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
 
-        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
 
             <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                 <h1 class="h2 text-ejidal">Editar Parcela</h1>
@@ -200,5 +200,6 @@
 
 @include('IncludeViews.pie')
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

@@ -1,7 +1,4 @@
-<!DOCTYPE html>
-<html lang="es">
 @include('IncludeViews.cabeza')
-<body>
 @include('IncludeViews.menu')
 
 <div class="mt-4">
@@ -24,7 +21,6 @@
             <form action="{{ route('apoyos.update', $apoyo->idApoyo) }}" method="POST">
                 @csrf
                 @method('PUT')
-
                 <div class="row g-3">
 
                     <div class="col-md-6">
@@ -125,12 +121,9 @@
                         <i class="fas fa-times me-1"></i> Cancelar
                     </a>
                 </div>
-
             </form>
         </div>
     </div>
 </div>
 
 @include('IncludeViews.pie')
-</body>
-</html>

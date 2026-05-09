@@ -1,11 +1,8 @@
-<!DOCTYPE html>
-<html lang="es">
 @include('IncludeViews.cabeza')
-<body>
 @include('IncludeViews.menu')
 
 <div class="mt-4">
-rd card-ejidal shadow">
+    <div class="card card-ejidal shadow">
         <div class="card-header card-header-ejidal d-flex justify-content-between align-items-center">
             <h4 class="mb-0"><i class="fas fa-hand-holding-heart me-2"></i>Apoyos Sociales</h4>
             <a href="{{ route('apoyos.create') }}" class="btn btn-light btn-sm">
@@ -56,15 +53,13 @@ rd card-ejidal shadow">
                             <td>
                                 @if($a->monto > 0)
                                     ${{ number_format($a->monto, 2) }}
-                                @else
-                                    —
+                                @else —
                                 @endif
                             </td>
                             <td>
                                 @if($a->cantidad > 0)
                                     {{ $a->cantidad }} {{ $a->unidad_medida }}
-                                @else
-                                    —
+                                @else —
                                 @endif
                             </td>
                             <td>{{ \Carbon\Carbon::parse($a->fecha_entrega)->format('d/m/Y') }}</td>
@@ -104,11 +99,9 @@ rd card-ejidal shadow">
                         @endforelse
                     </tbody>
                 </table>
-            <div class="mt-4">
+            </div>
         </div>
     </div>
 </div>
 
 @include('IncludeViews.pie')
-</body>
-</html>

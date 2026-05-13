@@ -77,7 +77,7 @@
                                 @else —
                                 @endif
                             </td>
-                            <td>{{ \Carbon\Carbon::parse($a->fecha_entrega)->format('d/m/Y') }}</td>
+                            <td>{{ \ Carbon\Carbon::parse($a->fecha_entrega)->format('d/m/Y') }}</td>
                             <td>{{ $a->nombre_representante }}</td>
                             <td class="text-center">{{ $a->num_beneficiarios }}</td>
                             <td class="text-center">

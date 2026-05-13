@@ -1,419 +1,198 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Mapa Catastral — Ejido San Rafael Ixtapalucan</title>
+@include('IncludeViews.cabeza')
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css">
-    <link rel="stylesheet" href="{{ asset('css/estiloPrincipal.css') }}">
+<meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <style>
-        html, body { height: 100%; margin: 0; overflow: hidden; }
-
-        /* ── Layout principal ── */
-        #app-wrapper { display: flex; flex-direction: column; height: 100vh; }
-        #main-row    { display: flex; flex: 1; overflow: hidden; }
-
-        /* ── Sidebar del sistema (igual que cabeza.blade.php) ── */
-        #sidebar-sistema {
-            width: 220px;
-            min-width: 220px;
-            background: #212529;
-            overflow-y: auto;
-            overflow-x: hidden;
-            height: 100%;
-            flex-shrink: 0;
-        }
-        #sidebar-sistema .nav-link {
-            color: rgba(255,255,255,.75);
-            padding: 8px 16px;
-            font-size: 13.5px;
-        }
-        #sidebar-sistema .nav-link:hover,
-        #sidebar-sistema .nav-link.active { color: #fff; background: rgba(255,255,255,.08); }
-        #sidebar-sistema .submenu { padding-left: 8px; }
-        #sidebar-sistema .submenu .nav-link { font-size: 12.5px; padding: 5px 16px; }
-
-        /* ── Área de contenido ── */
-        #area-contenido { flex: 1; display: flex; overflow: hidden; }
-
-        /* ── Panel lateral del mapa ── */
-        #panel-mapa {
-            width: 260px;
-            min-width: 260px;
-            height: 100%;
-            background: #fff;
-            border-right: 1px solid #dee2e6;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            transition: width .25s, min-width .25s;
-        }
-        #panel-mapa.cerrado { width: 0; min-width: 0; }
-
-        #panel-header {
-            background: #1a4c8b;
-            color: #fff;
-            padding: 10px 13px;
-            font-size: 13px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex-shrink: 0;
-        }
-        #panel-body { flex: 1; overflow-y: auto; padding: 10px 12px; }
-
-        .panel-titulo {
-            font-size: 10px; font-weight: 700;
-            text-transform: uppercase; letter-spacing: .6px;
-            color: #6c757d; margin-bottom: 6px;
-            border-bottom: 1px solid #f0f0f0; padding-bottom: 3px;
-        }
-        .panel-seccion { margin-bottom: 12px; }
-
-        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-        .stat-card { background: #f8f9fa; border-radius: 6px; padding: 7px 9px; text-align: center; }
-        .stat-num { font-size: 18px; font-weight: 700; color: #1a4c8b; line-height: 1; }
-        .stat-lbl { font-size: 10px; color: #6c757d; margin-top: 2px; }
-
-        .leyenda-item { display: flex; align-items: center; gap: 7px; font-size: 12px; color: #333; margin-bottom: 4px; }
-        .leyenda-color { width: 16px; height: 10px; border-radius: 3px; border: 1px solid rgba(0,0,0,.18); flex-shrink: 0; }
-
-        .parcela-item {
-            display: flex; align-items: center; gap: 7px;
-            padding: 5px; border-radius: 5px; cursor: pointer;
-            font-size: 12px; border-bottom: 1px solid #f5f5f5;
-            transition: background .12s;
-        }
-        .parcela-item:hover { background: #f0f4fc; }
-        .parcela-item.activa { background: #dde8f8; }
-        .parcela-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
-        .parcela-folio { font-weight: 600; color: #1a4c8b; font-size: 11px; }
-        .parcela-nombre { color: #555; font-size: 10px; }
-
-        /* ── Mapa ── */
-        #mapa-area { flex: 1; position: relative; overflow: hidden; }
-        #mapa { width: 100%; height: 100%; }
-
-        /* Tabs capas */
-        #tabs-capa {
-            position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
-            z-index: 1000; background: #fff; border: 1px solid #ccc;
-            border-radius: 6px; display: flex; overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0,0,0,.15);
-        }
-        .tab-capa {
-            padding: 5px 14px; font-size: 12px; font-weight: 500;
-            cursor: pointer; border-right: 1px solid #ddd; color: #444;
-            background: #fff; user-select: none; transition: background .12s;
-        }
-        .tab-capa:last-child { border-right: none; }
-        .tab-capa.activo { background: #1a4c8b; color: #fff; }
-        .tab-capa:hover:not(.activo) { background: #eef3fb; }
-
-        /* Toggle panel */
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
 
-        /* Info parcela */
-        #info-parcela {
-            position: absolute; bottom: 24px; right: 10px; z-index: 1000;
-            width: 260px; background: #fff;
-            border: 1px solid #dee2e6; border-radius: 8px;
-            box-shadow: 0 3px 14px rgba(0,0,0,.15);
-            display: none; font-size: 12px;
-        }
-        #info-header {
-            background: #1a4c8b; color: #fff; padding: 7px 12px;
-            border-radius: 8px 8px 0 0; font-weight: 600;
-            display: flex; justify-content: space-between; align-items: center;
-        }
-        #info-body { padding: 9px 12px; }
-        .info-fila { display: flex; margin-bottom: 4px; }
-        .info-etiqueta { width: 90px; font-weight: 600; color: #777; flex-shrink: 0; }
+<style>
+    /* ── Layout mapa dentro del col-md-9 ── */
+    #mapa-wrapper {
+        display: flex;
+        height: calc(100vh - 56px);
+        overflow: hidden;
+    }
 
-        /* Barra dibujo */
-        #barra-dibujo {
-            position: absolute; top: 48px; left: 50%; transform: translateX(-50%);
-            z-index: 1000; display: none; background: #fff;
-            border: 2px solid #e67e22; border-radius: 8px;
-            padding: 5px 14px; font-size: 12px; font-weight: 600;
-            color: #e67e22; box-shadow: 0 2px 8px rgba(0,0,0,.15);
-            align-items: center; gap: 10px; white-space: nowrap;
-        }
-        #barra-dibujo.visible { display: flex; }
+    /* ── Panel lateral del mapa ── */
+    #panel-mapa {
+        width: 220px;
+        min-width: 220px;
+        height: 100%;
+        background: #fff;
+        border-right: 1px solid #dee2e6;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+    #panel-header {
+        background: #1a4c8b;
+        color: #fff;
+        padding: 10px 13px;
+        font-size: 13px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-shrink: 0;
+    }
+    #panel-body { flex: 1; overflow-y: auto; padding: 10px 12px; }
+    .panel-titulo { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.6px; color:#6c757d; margin-bottom:6px; border-bottom:1px solid #f0f0f0; padding-bottom:3px; }
+    .panel-seccion { margin-bottom: 12px; }
+    .stat-grid { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+    .stat-card { background:#f8f9fa; border-radius:6px; padding:7px 9px; text-align:center; }
+    .stat-num { font-size:18px; font-weight:700; color:#1a4c8b; line-height:1; }
+    .stat-lbl { font-size:10px; color:#6c757d; margin-top:2px; }
+    .leyenda-item { display:flex; align-items:center; gap:7px; font-size:11px; color:#333; margin-bottom:4px; }
+    .leyenda-color { width:14px; height:9px; border-radius:3px; border:1px solid rgba(0,0,0,.18); flex-shrink:0; }
+    .parcela-item { display:flex; align-items:center; gap:6px; padding:4px 4px; border-radius:5px; cursor:pointer; font-size:11px; border-bottom:1px solid #f5f5f5; transition:background .12s; }
+    .parcela-item:hover { background:#f0f4fc; }
+    .parcela-item.activa { background:#dde8f8; }
+    .parcela-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+    .parcela-folio { font-weight:600; color:#1a4c8b; font-size:10px; }
+    .parcela-nombre { color:#555; font-size:9px; }
 
-        /* Coordenadas */
-        #coords {
-            position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%);
-            z-index: 900; background: rgba(255,255,255,.88);
-            border: 1px solid #ddd; border-radius: 4px;
-            padding: 2px 10px; font-size: 11px; color: #444; pointer-events: none;
-        }
+    /* ── Área del mapa ── */
+    #mapa-area { flex:1; position:relative; overflow:hidden; }
+    #mapa { width:100%; height:100%; }
 
-        /* Navbar ejidal */
-        .navbar-ejidal { background: #2d6a2d !important; }
-        .btn-ejidal { background: #1a4c8b; border-color: #1a4c8b; color: #fff; }
-        .btn-ejidal:hover { background: #153d70; border-color: #153d70; color: #fff; }
-    </style>
-</head>
-<body>
+    /* Tabs capas */
+    #tabs-capa { position:absolute; top:10px; left:50%; transform:translateX(-50%); z-index:1000; background:#fff; border:1px solid #ccc; border-radius:6px; display:flex; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,.15); }
+    .tab-capa { padding:5px 14px; font-size:12px; font-weight:500; cursor:pointer; border-right:1px solid #ddd; color:#444; background:#fff; user-select:none; transition:background .12s; }
+    .tab-capa:last-child { border-right:none; }
+    .tab-capa.activo { background:#1a4c8b; color:#fff; }
+    .tab-capa:hover:not(.activo) { background:#eef3fb; }
 
-<div id="app-wrapper">
+    /* Info parcela */
+    #info-parcela { position:absolute; bottom:24px; right:10px; z-index:1000; width:250px; background:#fff; border:1px solid #dee2e6; border-radius:8px; box-shadow:0 3px 14px rgba(0,0,0,.15); display:none; font-size:12px; }
+    #info-header { background:#1a4c8b; color:#fff; padding:7px 12px; border-radius:8px 8px 0 0; font-weight:600; display:flex; justify-content:space-between; align-items:center; }
+    #info-body { padding:9px 12px; }
+    .info-fila { display:flex; margin-bottom:4px; }
+    .info-etiqueta { width:90px; font-weight:600; color:#777; flex-shrink:0; font-size:11px; }
+    .info-valor { font-size:11px; color:#111; }
 
-    {{-- ═══ NAVBAR SUPERIOR (igual que cabeza.blade.php) ═══ --}}
-    <nav class="navbar navbar-expand-lg navbar-dark navbar-ejidal">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="#">
-                <i class="fas fa-tractor me-2"></i> Sistema Ejidal
-            </a>
-            <div class="collapse navbar-collapse">
-                <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
-                            <i class="fas fa-user-circle me-1"></i> Nombre Usuario
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i>Perfil</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="#"><i class="fas fa-sign-out-alt me-2"></i>Cerrar sesión</a></li>
-                        </ul>
-                    </li>
-                </ul>
+    /* Coordenadas */
+    #coords { position:absolute; bottom:4px; left:50%; transform:translateX(-50%); z-index:900; background:rgba(255,255,255,.88); border:1px solid #ddd; border-radius:4px; padding:2px 10px; font-size:11px; color:#444; pointer-events:none; }
+
+    .btn-ejidal { background:#1a4c8b; border-color:#1a4c8b; color:#fff; }
+    .btn-ejidal:hover { background:#153d70; border-color:#153d70; color:#fff; }
+    .navbar-ejidal { background:#2d6a2d !important; }
+</style>
+
+<div class="col-md-9 ms-sm-auto col-lg-10 px-0" style="height:calc(100vh - 56px);overflow:hidden;display:flex;">
+
+    {{-- Panel lateral del mapa --}}
+    <div id="panel-mapa">
+        <div id="panel-header">
+            <i class="fas fa-map-marked-alt"></i> Mapa Catastral
+        </div>
+        <div id="panel-body">
+
+            <div class="panel-seccion">
+                <div class="panel-titulo">Resumen</div>
+                <div class="stat-grid">
+                    <div class="stat-card"><div class="stat-num">{{ $stats['total'] }}</div><div class="stat-lbl">Parcelas</div></div>
+                    <div class="stat-card"><div class="stat-num" style="color:#198754">{{ $stats['con_poligono'] }}</div><div class="stat-lbl">Con polígono</div></div>
+                    <div class="stat-card"><div class="stat-num" style="color:#dc3545">{{ $stats['sin_poligono'] }}</div><div class="stat-lbl">Sin dibujar</div></div>
+                    <div class="stat-card"><div class="stat-num" style="color:#fd7e14">{{ $stats['en_litigio'] }}</div><div class="stat-lbl">En litigio</div></div>
+                </div>
+            </div>
+
+            <div class="panel-seccion">
+                <div class="panel-titulo">Capas</div>
+                <label class="d-flex align-items-center gap-2 mb-1" style="font-size:12px;cursor:pointer">
+                    <input type="checkbox" id="chk-parcelas" checked> Parcelas
+                </label>
+                <label class="d-flex align-items-center gap-2 mb-1" style="font-size:12px;cursor:pointer">
+                    <input type="checkbox" id="chk-etiquetas"> Etiquetas
+                </label>
+                <label class="d-flex align-items-center gap-2 mb-1" style="font-size:12px;cursor:pointer">
+                    <input type="checkbox" id="chk-perimetro" checked> Perímetro ejidal
+                </label>
+            </div>
+
+            <div class="panel-seccion">
+                <div class="panel-titulo">Leyenda</div>
+                <div class="leyenda-item"><div class="leyenda-color" style="background:#2563eb55;border-color:#1d4ed8"></div>Con expediente</div>
+                <div class="leyenda-item"><div class="leyenda-color" style="background:#16a34a55;border-color:#15803d"></div>Certificada</div>
+                <div class="leyenda-item"><div class="leyenda-color" style="background:#dc262655;border-color:#b91c1c"></div>En litigio</div>
+                <div class="leyenda-item"><div class="leyenda-color" style="background:#d9770655;border-color:#b45309"></div>Sin regularizar</div>
+                <div class="leyenda-item"><div style="width:14px;height:3px;border-top:2px dashed #b91c1c;flex-shrink:0"></div>Perímetro ejidal</div>
+            </div>
+
+            <div class="panel-seccion">
+                <div class="panel-titulo">Parcelas ({{ $parcelas->count() }})</div>
+                @foreach($parcelas as $p)
+                <div class="parcela-item" data-id="{{ $p->idParcela }}" onclick="seleccionarParcela({{ $p->idParcela }})">
+                    <div class="parcela-dot" style="background:{{ match($p->estado ?? '') { 'certificada' => '#16a34a', 'expediente' => '#2563eb', 'litigio' => '#dc2626', default => '#d97706' } }}"></div>
+                    <div>
+                        <div class="parcela-folio">P-{{ str_pad($p->noParcela, 3, '0', STR_PAD_LEFT) }}</div>
+                        <div class="parcela-nombre">{{ $p->ejidatario ? $p->ejidatario->nombre . ' ' . $p->ejidatario->apellidoPaterno : 'Sin asignar' }}</div>
+                    </div>
+                    @if(!$p->tienePoligono())
+                        <span class="ms-auto" style="font-size:9px;color:#bbb;font-style:italic">sin dibujo</span>
+                    @endif
+                </div>
+                @endforeach
+            </div>
+
+            <div class="panel-seccion">
+                <div class="d-flex flex-column gap-2">
+                    <a href="{{ route('parcelas.create') }}" class="btn btn-ejidal btn-sm">
+                        <i class="fas fa-plus me-1"></i> Nueva parcela
+                    </a>
+                    <button class="btn btn-outline-secondary btn-sm" onclick="centrarEjido()">
+                        <i class="fas fa-compress-arrows-alt me-1"></i> Centrar vista
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    {{-- Área del mapa --}}
+    <div id="mapa-area">
+        <div id="tabs-capa">
+            <div class="tab-capa activo" data-capa="osm">OSM</div>
+            <div class="tab-capa" data-capa="sat_google">Satélite</div>
+            <div class="tab-capa" data-capa="sat_esri">ESRI</div>
+        </div>
+
+        <div id="mapa"></div>
+
+        <div id="info-parcela">
+            <div id="info-header">
+                <span id="info-titulo">Parcela</span>
+                <span style="cursor:pointer" onclick="cerrarInfo()">✕</span>
+            </div>
+            <div id="info-body">
+                <div class="info-fila"><span class="info-etiqueta">Folio:</span><span class="info-valor" id="inf-folio">—</span></div>
+                <div class="info-fila"><span class="info-etiqueta">Ejidatario:</span><span class="info-valor" id="inf-ejidatario">—</span></div>
+                <div class="info-fila"><span class="info-etiqueta">Superficie:</span><span class="info-valor" id="inf-superficie">—</span></div>
+                <div class="info-fila"><span class="info-etiqueta">Uso suelo:</span><span class="info-valor" id="inf-uso">—</span></div>
+                <div class="info-fila"><span class="info-etiqueta">Estado:</span><span class="info-valor" id="inf-estado">—</span></div>
             </div>
         </div>
-    </nav>
 
-    <div id="main-row">
+        <div id="coords">Lat: — | Lng: —</div>
+    </div>
 
-        {{-- ═══ SIDEBAR DEL SISTEMA (igual que cabeza.blade.php) ═══ --}}
-        <div id="sidebar-sistema">
-            <div class="position-sticky pt-2">
-                <ul class="nav flex-column">
+</div>
 
-                    <li class="nav-item">
-                        <a class="nav-link active" href="{{ route('principal') }}">
-                            <i class="fas fa-home me-2"></i> Inicio
-                        </a>
-                    </li>
-
-                    {{-- Ejidatarios --}}
-                    <li class="nav-item">
-                        <a class="nav-link" data-bs-toggle="collapse" href="#ejidatariosMenu">
-                            <i class="fas fa-users me-2"></i> Ejidatarios
-                            <i class="fas fa-angle-down float-end mt-1"></i>
-                        </a>
-                        <div class="collapse" id="ejidatariosMenu">
-                            <ul class="nav flex-column submenu">
-                                <li class="nav-item"><a class="nav-link" href="{{ url('/nuevoE') }}"><i class="far fa-address-card me-2"></i>Nuevo</a></li>
-                                <li class="nav-item"><a class="nav-link" href="{{ url('/listadoEjidatarios') }}"><i class="fas fa-list me-2"></i>Listado</a></li>
-                            </ul>
-                        </div>
-                    </li>
-
-                    {{-- Parcelas --}}
-                    <li class="nav-item">
-                        <a class="nav-link" data-bs-toggle="collapse" href="#parcelasMenu">
-                            <i class="fas fa-map-marked-alt me-2"></i> Parcelas
-                            <i class="fas fa-angle-down float-end mt-1"></i>
-                        </a>
-                        <div class="collapse show" id="parcelasMenu">
-                            <ul class="nav flex-column submenu">
-                                <li class="nav-item"><a class="nav-link" href="{{ route('parcelas.create') }}"><i class="fas fa-plus-circle me-2"></i>Nueva</a></li>
-                                <li class="nav-item"><a class="nav-link active" href="{{ route('parcelas.mapa') }}"><i class="fas fa-map me-2"></i>Mapa</a></li>
-                                <li class="nav-item"><a class="nav-link" href="{{ route('parcelas.index') }}"><i class="fas fa-list me-2"></i>Listado</a></li>
-                            </ul>
-                        </div>
-                    </li>
-
-                    {{-- Gastos --}}
-                    <li class="nav-item">
-                        <a class="nav-link" data-bs-toggle="collapse" href="#gastosMenu">
-                            <i class="fas fa-wallet me-2"></i> Gastos
-                            <i class="fas fa-angle-down float-end mt-1"></i>
-                        </a>
-                        <div class="collapse" id="gastosMenu">
-                            <ul class="nav flex-column submenu">
-                                <li class="nav-item"><a class="nav-link" href="{{ route('gastos.create') }}"><i class="fas fa-plus-circle me-2"></i>Nuevo</a></li>
-                                <li class="nav-item"><a class="nav-link" href="{{ route('gastos.index') }}"><i class="fas fa-list me-2"></i>Consultar</a></li>
-                            </ul>
-                        </div>
-                    </li>
-
-                    {{-- Inventario --}}
-                    <li class="nav-item">
-                        <a class="nav-link" data-bs-toggle="collapse" href="#inventarioMenu">
-                            <i class="fas fa-warehouse me-2"></i> Inventario
-                            <i class="fas fa-angle-down float-end mt-1"></i>
-                        </a>
-                        <div class="collapse" id="inventarioMenu">
-                            <ul class="nav flex-column submenu">
-                                <li class="nav-item"><a class="nav-link" href="{{ route('articulos.create') }}"><i class="fas fa-plus-circle me-2"></i>Nuevo</a></li>
-                                <li class="nav-item"><a class="nav-link" href="{{ route('articulos.index') }}"><i class="fas fa-list me-2"></i>Listado</a></li>
-                            </ul>
-                        </div>
-                    </li>
-
-                    {{-- Entradas y Salidas --}}
-                    <li class="nav-item">
-                        <a class="nav-link" data-bs-toggle="collapse" href="#eysMenu">
-                            <i class="fas fa-exchange-alt me-2"></i> Entradas y Salidas
-                            <i class="fas fa-angle-down float-end mt-1"></i>
-                        </a>
-                        <div class="collapse" id="eysMenu">
-                            <ul class="nav flex-column submenu">
-                                <li class="nav-item"><a class="nav-link" href="{{ route('entradas.create') }}"><i class="fas fa-plus-circle me-2"></i>Entradas</a></li>
-                                <li class="nav-item"><a class="nav-link" href="{{ route('salidas.create') }}"><i class="fas fa-minus-circle me-2"></i>Salidas</a></li>
-                                <li class="nav-item"><a class="nav-link" href="{{ route('reporte.eys') }}"><i class="fas fa-chart-pie me-2"></i>Reportes</a></li>
-                            </ul>
-                        </div>
-                    </li>
-
-                    {{-- Apoyos Sociales --}}
-                    <li class="nav-item">
-                        <a class="nav-link" data-bs-toggle="collapse" href="#apoyosMenu">
-                            <i class="fas fa-hands-helping me-2"></i> Apoyos Sociales
-                            <i class="fas fa-angle-down float-end mt-1"></i>
-                        </a>
-                        <div class="collapse" id="apoyosMenu">
-                            <ul class="nav flex-column submenu">
-                                <li class="nav-item"><a class="nav-link" href="#"><i class="fas fa-plus-circle me-2"></i>Nuevo Apoyo</a></li>
-                                <li class="nav-item"><a class="nav-link" href="#"><i class="fas fa-list me-2"></i>Registros</a></li>
-                            </ul>
-                        </div>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link" href="#"><i class="fas fa-cogs me-2"></i> Configuración</a>
-                    </li>
-
-                </ul>
-            </div>
-        </div>{{-- /sidebar-sistema --}}
-
-        {{-- ═══ CONTENIDO: panel mapa + mapa ═══ --}}
-        <div id="area-contenido">
-
-            {{-- Panel lateral del mapa --}}
-            <div id="panel-mapa">
-                <div id="panel-header">
-                    <i class="fas fa-map-marked-alt"></i> Mapa Catastral
-                </div>
-                <div id="panel-body">
-
-                    <div class="panel-seccion">
-                        <div class="panel-titulo">Resumen</div>
-                        <div class="stat-grid">
-                            <div class="stat-card">
-                                <div class="stat-num">{{ $stats['total'] }}</div>
-                                <div class="stat-lbl">Parcelas</div>
-                            </div>
-                            <div class="stat-card">
-                                <div class="stat-num" style="color:#198754">{{ $stats['con_poligono'] }}</div>
-                                <div class="stat-lbl">Con polígono</div>
-                            </div>
-                            <div class="stat-card">
-                                <div class="stat-num" style="color:#dc3545">{{ $stats['sin_poligono'] }}</div>
-                                <div class="stat-lbl">Sin dibujar</div>
-                            </div>
-                            <div class="stat-card">
-                                <div class="stat-num" style="color:#fd7e14">{{ $stats['en_litigio'] }}</div>
-                                <div class="stat-lbl">En litigio</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="panel-seccion">
-                        <div class="panel-titulo">Parcelas ({{ $parcelas->count() }})</div>
-                        @foreach($parcelas as $p)
-                        <div class="parcela-item" data-id="{{ $p->idParcela }}"
-                             onclick="seleccionarParcela({{ $p->idParcela }})">
-                            <div class="parcela-dot" style="background:{{ match($p->estado ?? '') {
-                                'certificada' => '#16a34a',
-                                'expediente'  => '#2563eb',
-                                'litigio'     => '#dc2626',
-                                default       => '#d97706'
-                            } }}"></div>
-                            <div>
-                                <div class="parcela-folio">P-{{ str_pad($p->noParcela, 3, '0', STR_PAD_LEFT) }}</div>
-                                <div class="parcela-nombre">
-                                    {{ $p->ejidatario ? $p->ejidatario->nombre . ' ' . $p->ejidatario->apellidoPaterno : 'Sin asignar' }}
-                                </div>
-                            </div>
-                            @if(!$p->tienePoligono())
-                                <span class="ms-auto" style="font-size:9px;color:#bbb;font-style:italic">sin dibujo</span>
-                            @endif
-                        </div>
-                        @endforeach
-                    </div>
-
-                    <div class="panel-seccion">
-                        <div class="d-flex flex-column gap-2">
-                            <a href="{{ route('parcelas.create') }}" class="btn btn-ejidal btn-sm">
-                                <i class="fas fa-plus me-1"></i> Nueva parcela
-                            </a>
-                            <button class="btn btn-outline-secondary btn-sm" onclick="centrarEjido()">
-                                <i class="fas fa-compress-arrows-alt me-1"></i> Centrar vista
-                            </button>
-                        </div>
-                    </div>
-
-                </div>
-            </div>{{-- /panel-mapa --}}
-
-            {{-- Área del mapa --}}
-            <div id="mapa-area">
-                <div id="tabs-capa">
-                    <div class="tab-capa activo" data-capa="osm">OSM</div>
-                    <div class="tab-capa" data-capa="sat_google">Satélite</div>
-                    <div class="tab-capa" data-capa="sat_esri">ESRI</div>
-                </div>
-
-                <div id="barra-dibujo">
-                    <i class="fas fa-draw-polygon"></i>
-                    Modo dibujo — clic para vértices, doble clic para terminar
-                    <button class="btn btn-sm btn-outline-warning ms-2" onclick="cancelarDibujo()">Cancelar</button>
-                </div>
-
-                <div id="mapa"></div>
-
-                <div id="info-parcela">
-                    <div id="info-header">
-                        <span id="info-titulo">Parcela</span>
-                        <span style="cursor:pointer" onclick="cerrarInfo()">✕</span>
-                    </div>
-                    <div id="info-body">
-                        <div class="info-fila"><span class="info-etiqueta">Folio:</span><span id="inf-folio">—</span></div>
-                        <div class="info-fila"><span class="info-etiqueta">Ejidatario:</span><span id="inf-ejidatario">—</span></div>
-                        <div class="info-fila"><span class="info-etiqueta">Superficie:</span><span id="inf-superficie">—</span></div>
-                        <div class="info-fila"><span class="info-etiqueta">Uso suelo:</span><span id="inf-uso">—</span></div>
-                        <div class="info-fila"><span class="info-etiqueta">Estado:</span><span id="inf-estado">—</span></div>
-                    </div>
-                </div>
-
-                <div id="coords">Lat: — | Lng: —</div>
-            </div>{{-- /mapa-area --}}
-
-        </div>{{-- /area-contenido --}}
-    </div>{{-- /main-row --}}
-</div>{{-- /app-wrapper --}}
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
-
 <script>
 const GEOJSON     = @json($geojson);
 const PARCELAS_BD = @json($parcelasJs);
 const CSRF        = document.querySelector('meta[name="csrf-token"]').content;
 
+const GEOJSON     = @json($geojson);
+const PARCELAS_BD = @json($parcelasJs);
+const CSRF        = document.querySelector('meta[name="csrf-token"]').content;
+
 const CAPAS = {
-    osm: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom:19, attribution:'© OpenStreetMap' }),
+    osm:        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom:20, attribution:'© OpenStreetMap' }),
     sat_google: L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',  { maxZoom:20, attribution:'© Google' }),
     sat_esri:   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom:19, attribution:'© ESRI' }),
 };
@@ -431,8 +210,8 @@ const map = L.map('mapa', {
     zoomControl: false,
     zoomSnap: 0.5,
     zoomDelta: 0.5,
-    maxZoom: 19,
     wheelPxPerZoomLevel: 60,
+    maxZoom: 19,
     layers: [CAPAS.osm],
 });
 L.control.zoom({ position: 'bottomleft' }).addTo(map);
@@ -678,7 +457,7 @@ function toast(msg, tipo='success') {
 // Invalidar tamaño del mapa al cargar completamente
 window.addEventListener('load', () => map.invalidateSize());
 setTimeout(() => map.invalidateSize(), 200);
+
 </script>
 
-</body>
-</html>
+@include('IncludeViews.pie')

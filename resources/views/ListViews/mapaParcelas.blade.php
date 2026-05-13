@@ -54,8 +54,8 @@
     .parcela-nombre { color:#555; font-size:9px; }
 
     /* ── Área del mapa ── */
-    #mapa-area { flex:1; position:relative; overflow:hidden; }
-    #mapa { width:100%; height:100%; }
+    #mapa-area { flex:1; position:relative; overflow:hidden; min-height:0; display:flex; flex-direction:column; }
+    #mapa { width:100%; height:100%; min-height:400px; flex:1; }
 
     /* Tabs capas */
     #tabs-capa { position:absolute; top:10px; left:50%; transform:translateX(-50%); z-index:1000; background:#fff; border:1px solid #ccc; border-radius:6px; display:flex; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,.15); }
@@ -80,7 +80,7 @@
     .navbar-ejidal { background:#2d6a2d !important; }
 </style>
 
-<div class="col-md-9 ms-sm-auto col-lg-10 px-0" style="height:calc(100vh - 56px);overflow:hidden;display:flex;">
+<div class="col-md-9 ms-sm-auto col-lg-10 px-0" style="height:calc(100vh - 56px);overflow:hidden;display:flex;position:relative;">
 
     {{-- Panel lateral del mapa --}}
     <div id="panel-mapa">
@@ -458,6 +458,10 @@ function toast(msg, tipo='success') {
 window.addEventListener('load', () => map.invalidateSize());
 setTimeout(() => map.invalidateSize(), 200);
 
+// Forzar render del mapa al cargar
+window.addEventListener('load', () => { setTimeout(() => map.invalidateSize(), 100); });
+setTimeout(() => map.invalidateSize(), 300);
+setTimeout(() => map.invalidateSize(), 800);
 </script>
 
 @include('IncludeViews.pie')

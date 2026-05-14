@@ -462,6 +462,19 @@ setTimeout(() => map.invalidateSize(), 200);
 window.addEventListener('load', () => { setTimeout(() => map.invalidateSize(), 100); });
 setTimeout(() => map.invalidateSize(), 300);
 setTimeout(() => map.invalidateSize(), 800);
+function ajustarAlturaMapa() {
+    const contenedor = document.querySelector('.col-md-9.ms-sm-auto');
+    const mapaArea   = document.getElementById('mapa-area');
+    const mapa       = document.getElementById('mapa');
+    if (!contenedor || !mapaArea || !mapa) return;
+    const h = window.innerHeight - contenedor.getBoundingClientRect().top;
+    contenedor.style.height = h + 'px';
+    mapaArea.style.height   = h + 'px';
+    mapa.style.height       = h + 'px';
+    map.invalidateSize();
+}
+ajustarAlturaMapa();
+window.addEventListener('resize', ajustarAlturaMapa);
 </script>
 
 @include('IncludeViews.pie')

@@ -6,13 +6,38 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-
 <style>
-    /* ── Layout mapa dentro del col-md-9 ── */
+    /*
+     * ── FIX CRÍTICO ──────────────────────────────────────────────────────────
+     * cabeza.blade.php deja abiertos: body > .container-fluid > .row
+     * Esos contenedores no tienen altura definida → Leaflet recibe height:0.
+     * Solución: sacar el wrapper del mapa del flujo normal con position:fixed.
+     * Así el mapa siempre ocupa exactamente el viewport disponible.
+     * ─────────────────────────────────────────────────────────────────────────
+     */
+
+    /* Sidebar de Bootstrap tiene z-index ~100; el mapa va debajo */
     #mapa-wrapper {
+        position: fixed;
+        top: 56px;           /* altura del navbar */
+        left: 0;
+        right: 0;
+        bottom: 0;
         display: flex;
-        height: calc(100vh - 56px);
-        overflow: hidden;
+        z-index: 10;
+        background: #f0f0f0;
+    }
+
+    /* Cuando el sidebar de Bootstrap está visible (≥768px) empuja el mapa */
+    @media (min-width: 768px) {
+        #mapa-wrapper {
+            left: 16.666667%; /* col-md-2 del sidebar ≈ 2/12 columnas */
+        }
+    }
+    @media (min-width: 992px) {
+        #mapa-wrapper {
+            left: 16.666667%; /* col-lg-2 */
+        }
     }
 
     /* ── Panel lateral del mapa ── */
@@ -25,6 +50,7 @@
         display: flex;
         flex-direction: column;
         overflow: hidden;
+        z-index: 11;
     }
     #panel-header {
         background: #1a4c8b;
@@ -54,8 +80,15 @@
     .parcela-nombre { color:#555; font-size:9px; }
 
     /* ── Área del mapa ── */
-    #mapa-area { flex:1; position:relative; overflow:hidden; min-height:0; display:flex; flex-direction:column; }
-    #mapa { width:100%; height:100%; min-height:400px; flex:1; }
+    #mapa-area {
+        flex: 1;
+        position: relative;
+        overflow: hidden;
+    }
+    #mapa {
+        width: 100%;
+        height: 100%;
+    }
 
     /* Tabs capas */
     #tabs-capa { position:absolute; top:10px; left:50%; transform:translateX(-50%); z-index:1000; background:#fff; border:1px solid #ccc; border-radius:6px; display:flex; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,.15); }
@@ -77,10 +110,23 @@
 
     .btn-ejidal { background:#1a4c8b; border-color:#1a4c8b; color:#fff; }
     .btn-ejidal:hover { background:#153d70; border-color:#153d70; color:#fff; }
-    .navbar-ejidal { background:#2d6a2d !important; }
+
+    /* Barra de dibujo */
+    #barra-dibujo { display:none; position:absolute; top:52px; left:50%; transform:translateX(-50%); z-index:1100; background:#fff; border:1px solid #dee2e6; border-radius:6px; padding:6px 12px; box-shadow:0 2px 8px rgba(0,0,0,.15); gap:8px; align-items:center; }
+    #barra-dibujo.visible { display:flex; }
 </style>
 
-<div class="col-md-9 ms-sm-auto col-lg-10 px-0" style="height:calc(100vh - 56px);overflow:hidden;display:flex;position:relative;">
+{{--
+    Este div vacío es necesario para que pie.blade.php cierre correctamente
+    el .row y .container-fluid que cabeza.blade.php dejó abiertos.
+    El mapa va en #mapa-wrapper que usa position:fixed y vive fuera del flujo.
+--}}
+<div class="col-md-9 ms-sm-auto col-lg-10 px-md-4" style="min-height:1px"></div>
+
+{{-- ══════════════════════════════════════════════════════════════════════════ --}}
+{{--  MAPA — usa position:fixed para escapar del grid de Bootstrap             --}}
+{{-- ══════════════════════════════════════════════════════════════════════════ --}}
+<div id="mapa-wrapper">
 
     {{-- Panel lateral del mapa --}}
     <div id="panel-mapa">
@@ -161,6 +207,13 @@
 
         <div id="mapa"></div>
 
+        <div id="barra-dibujo">
+            <span style="font-size:12px;font-weight:600;color:#1a4c8b">Dibujando parcela…</span>
+            <button class="btn btn-sm btn-outline-danger" onclick="cancelarDibujo()">
+                <i class="fas fa-times me-1"></i>Cancelar
+            </button>
+        </div>
+
         <div id="info-parcela">
             <div id="info-header">
                 <span id="info-titulo">Parcela</span>
@@ -172,6 +225,14 @@
                 <div class="info-fila"><span class="info-etiqueta">Superficie:</span><span class="info-valor" id="inf-superficie">—</span></div>
                 <div class="info-fila"><span class="info-etiqueta">Uso suelo:</span><span class="info-valor" id="inf-uso">—</span></div>
                 <div class="info-fila"><span class="info-etiqueta">Estado:</span><span class="info-valor" id="inf-estado">—</span></div>
+                <div class="info-fila" style="margin-top:8px;gap:6px">
+                    <button class="btn btn-ejidal btn-sm flex-fill" onclick="iniciarDibujo()">
+                        <i class="fas fa-draw-polygon me-1"></i>Dibujar
+                    </button>
+                    <button class="btn btn-outline-danger btn-sm" onclick="confirmarBorrar()" title="Borrar polígono">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -187,12 +248,8 @@ const GEOJSON     = @json($geojson);
 const PARCELAS_BD = @json($parcelasJs);
 const CSRF        = document.querySelector('meta[name="csrf-token"]').content;
 
-const GEOJSON     = @json($geojson);
-const PARCELAS_BD = @json($parcelasJs);
-const CSRF        = document.querySelector('meta[name="csrf-token"]').content;
-
 const CAPAS = {
-    osm:        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom:20, attribution:'© OpenStreetMap' }),
+    osm:        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom:19, attribution:'© OpenStreetMap' }),
     sat_google: L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',  { maxZoom:20, attribution:'© Google' }),
     sat_esri:   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom:19, attribution:'© ESRI' }),
 };
@@ -217,70 +274,24 @@ const map = L.map('mapa', {
 L.control.zoom({ position: 'bottomleft' }).addTo(map);
 L.control.scale({ metric: true, imperial: false, position: 'bottomleft' }).addTo(map);
 
-// ══════════════════════════════════════════════════════════════
-//  PERÍMETRO DEL EJIDO — San Rafael Ixtapalucan
-//  Trazado sobre imagen Google Maps (contorno línea roja)
-//  Zona: Santa Rita Tlahuapan, Puebla
-// ══════════════════════════════════════════════════════════════
 const PERIMETRO_EJIDO = [
-    // Trazado sobre imagen Google Maps oficial — San Rafael Ixtapalucan
-    // Esquina norte-este (arriba derecha)
-    [19.3058, -98.5482],
-    [19.3055, -98.5468],
-    [19.3048, -98.5455],
-    // Borde este (derecha) bajando
-    [19.3020, -98.5448],
-    [19.2998, -98.5450],
-    [19.2975, -98.5455],
-    [19.2958, -98.5462],
-    // Esquina sur-este
-    [19.2932, -98.5468],
-    [19.2910, -98.5480],
-    // Borde sur bajando
-    [19.2890, -98.5510],
-    [19.2878, -98.5538],
-    [19.2868, -98.5562],
-    [19.2862, -98.5588],
-    // Esquina sur-oeste
-    [19.2860, -98.5618],
-    [19.2865, -98.5648],
-    [19.2872, -98.5672],
-    // Borde sur-oeste subiendo
-    [19.2885, -98.5695],
-    [19.2902, -98.5710],
-    // Borde oeste (izquierda) subiendo
-    [19.2928, -98.5725],
-    [19.2950, -98.5730],
-    [19.2968, -98.5728],
-    // Borde norte-oeste
-    [19.2988, -98.5720],
-    [19.3005, -98.5705],
-    [19.3022, -98.5688],
-    [19.3038, -98.5665],
-    [19.3048, -98.5640],
-    // Borde norte
-    [19.3058, -98.5610],
-    [19.3062, -98.5578],
-    [19.3062, -98.5545],
-    [19.3060, -98.5512],
+    [19.3058, -98.5482],[19.3055, -98.5468],[19.3048, -98.5455],
+    [19.3020, -98.5448],[19.2998, -98.5450],[19.2975, -98.5455],
+    [19.2958, -98.5462],[19.2932, -98.5468],[19.2910, -98.5480],
+    [19.2890, -98.5510],[19.2878, -98.5538],[19.2868, -98.5562],
+    [19.2862, -98.5588],[19.2860, -98.5618],[19.2865, -98.5648],
+    [19.2872, -98.5672],[19.2885, -98.5695],[19.2902, -98.5710],
+    [19.2928, -98.5725],[19.2950, -98.5730],[19.2968, -98.5728],
+    [19.2988, -98.5720],[19.3005, -98.5705],[19.3022, -98.5688],
+    [19.3038, -98.5665],[19.3048, -98.5640],[19.3058, -98.5610],
+    [19.3062, -98.5578],[19.3062, -98.5545],[19.3060, -98.5512],
     [19.3058, -98.5482],
 ];
 
 const layerPerimetro = L.polygon(PERIMETRO_EJIDO, {
-    color: '#b91c1c',
-    weight: 2.5,
-    dashArray: '8 5',
-    fill: false,
-    opacity: 0.85,
+    color: '#b91c1c', weight: 2.5, dashArray: '8 5', fill: false, opacity: 0.85,
 }).addTo(map);
-
-layerPerimetro.bindTooltip('Ejido San Rafael Ixtapalucan', {
-    permanent: false,
-    direction: 'center',
-    className: 'leaflet-tooltip',
-});
-
-
+layerPerimetro.bindTooltip('Ejido San Rafael Ixtapalucan', { permanent:false, direction:'center' });
 
 let capaActual     = 'osm';
 let layerPoligonos = L.layerGroup().addTo(map);
@@ -332,7 +343,6 @@ function mostrarInfo(p, layer) {
     document.getElementById('inf-superficie').textContent = p.superficie ? p.superficie + ' ha' : '—';
     document.getElementById('inf-uso').textContent        = p.uso;
     document.getElementById('inf-estado').textContent     = ESTADOS_LBL[p.estado] || p.estado;
-
     document.getElementById('info-parcela').style.display = 'block';
 }
 
@@ -354,7 +364,7 @@ function seleccionarParcela(id) {
     else { if (bd.lat && bd.lng) map.setView([bd.lat,bd.lng],16); mostrarInfo(bd,null); }
 }
 
-let drawLayer = new L.FeatureGroup().addTo(map);
+let drawLayer   = new L.FeatureGroup().addTo(map);
 let drawControl = null;
 
 function iniciarDibujo() {
@@ -414,14 +424,6 @@ document.querySelectorAll('.tab-capa').forEach(tab => {
         if (c === capaActual) return;
         map.removeLayer(CAPAS[capaActual]); map.addLayer(CAPAS[c]); capaActual = c;
         document.querySelectorAll('.tab-capa').forEach(t => t.classList.toggle('activo', t.dataset.capa===c));
-        document.querySelector(`input[name="capa"][value="${c}"]`).checked = true;
-    });
-});
-document.querySelectorAll('input[name="capa"]').forEach(r => {
-    r.addEventListener('change', function() {
-        const c = this.value;
-        map.removeLayer(CAPAS[capaActual]); map.addLayer(CAPAS[c]); capaActual = c;
-        document.querySelectorAll('.tab-capa').forEach(t => t.classList.toggle('activo', t.dataset.capa===c));
     });
 });
 
@@ -439,8 +441,6 @@ map.on('mousemove', e => {
     document.getElementById('coords').textContent = `Lat: ${e.latlng.lat.toFixed(6)}  |  Lng: ${e.latlng.lng.toFixed(6)}`;
 });
 
-
-
 function centrarEjido() {
     map.fitBounds(layerPerimetro.getBounds(), { padding: [30, 30] });
 }
@@ -454,27 +454,9 @@ function toast(msg, tipo='success') {
     setTimeout(() => el.remove(), 3000);
 }
 
-// Invalidar tamaño del mapa al cargar completamente
+// Un solo invalidateSize cuando el DOM y estilos estén listos
+document.addEventListener('DOMContentLoaded', () => map.invalidateSize());
 window.addEventListener('load', () => map.invalidateSize());
-setTimeout(() => map.invalidateSize(), 200);
-
-// Forzar render del mapa al cargar
-window.addEventListener('load', () => { setTimeout(() => map.invalidateSize(), 100); });
-setTimeout(() => map.invalidateSize(), 300);
-setTimeout(() => map.invalidateSize(), 800);
-function ajustarAlturaMapa() {
-    const contenedor = document.querySelector('.col-md-9.ms-sm-auto');
-    const mapaArea   = document.getElementById('mapa-area');
-    const mapa       = document.getElementById('mapa');
-    if (!contenedor || !mapaArea || !mapa) return;
-    const h = window.innerHeight - contenedor.getBoundingClientRect().top;
-    contenedor.style.height = h + 'px';
-    mapaArea.style.height   = h + 'px';
-    mapa.style.height       = h + 'px';
-    map.invalidateSize();
-}
-ajustarAlturaMapa();
-window.addEventListener('resize', ajustarAlturaMapa);
 </script>
 
 @include('IncludeViews.pie')

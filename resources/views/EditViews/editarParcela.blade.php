@@ -126,7 +126,7 @@
         </div>
 
         {{-- COORDENADAS --}}
-        @if($coordenadas->count() > 0)
+        @if($coordenadas && $coordenadas->count() > 0)
         <div class="card card-ejidal mb-3">
             <div class="card-header card-header-ejidal">
                 <i class="fas fa-map-pin me-2"></i>Coordenadas GPS

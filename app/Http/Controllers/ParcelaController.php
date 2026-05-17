@@ -263,7 +263,7 @@ class ParcelaController extends Controller
         $ejidatarios = Ejidatario::orderBy('nombre')->get();
         $usos        = Uso::all();
         $ejidatario  = $parcela->ejidatario;
-        $coordenadas = $parcela->coordenadas;
+        $coordenadas = $parcela->coordenadas ?? collect();
         $col         = Colindancia::where('idParcela', $parcela->idParcela)->first();
         $colindancia = $col ? $col->toArray() : [];
         $infAdmin    = $parcela->infAdmin;

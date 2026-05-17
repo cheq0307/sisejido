@@ -140,7 +140,9 @@ class ParcelaController extends Controller
         $request->validate([
             'numeroEjidatario' => 'required|numeric',
             'noParcela'        => 'required|numeric|min:1',
-            'fechaExpedicion' => [
+            'superficie'       => 'required',   // ← agregar
+            'ubicacion'        => 'nullable|string|max:255',
+            'fechaExpedicion'  => [
                 'nullable',
                 'date_format:Y-m-d',
                 function ($attribute, $value, $fail) {
@@ -155,8 +157,7 @@ class ParcelaController extends Controller
             'numeroEjidatario.required' => 'Debes buscar un ejidatario antes de guardar.',
             'noParcela.required'        => 'El número de parcela es obligatorio.',
             'noParcela.numeric'         => 'El número de parcela debe ser un número.',
-            'fechaExpedicion.after_or_equal'  => 'La fecha debe ser posterior a 1900.',
-            'fechaExpedicion.before_or_equal' => 'La fecha no puede ser posterior al año 2100.',
+            'superficie.required'       => 'La superficie es obligatoria.',
         ]);
 
         // 2. Verificar que el ejidatario exista

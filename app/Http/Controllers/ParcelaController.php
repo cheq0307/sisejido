@@ -140,11 +140,16 @@ class ParcelaController extends Controller
         $request->validate([
             'numeroEjidatario' => 'required|numeric',
             'noParcela'        => 'required|numeric|min:1',
-            'fechaExpedicion'  => [
+            'fechaExpedicion' => [
                 'nullable',
-                'date',
-                'after_or_equal:1900-01-01',
-                'before_or_equal:2100-12-31',
+                'date_format:Y-m-d',
+                function ($attribute, $value, $fail) {
+                    if (!$value) return;
+                    $year = (int) substr($value, 0, 4);
+                    if ($year < 1900 || $year > 2100) {
+                        $fail('El año de la fecha debe estar entre 1900 y 2100.');
+                    }
+                },
             ],
         ], [
             'numeroEjidatario.required' => 'Debes buscar un ejidatario antes de guardar.',
@@ -283,9 +288,14 @@ class ParcelaController extends Controller
             'noParcela'       => 'required|numeric|min:1',
             'fechaExpedicion' => [
                 'nullable',
-                'date',
-                'after_or_equal:1900-01-01',
-                'before_or_equal:2100-12-31',
+                'date_format:Y-m-d',
+                function ($attribute, $value, $fail) {
+                    if (!$value) return;
+                    $year = (int) substr($value, 0, 4);
+                    if ($year < 1900 || $year > 2100) {
+                        $fail('El año de la fecha debe estar entre 1900 y 2100.');
+                    }
+                },
             ],
         ], [
             'noParcela.required'              => 'El número de parcela es obligatorio.',

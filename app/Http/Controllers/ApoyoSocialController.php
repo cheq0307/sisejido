@@ -25,7 +25,7 @@ class ApoyoSocialController extends Controller
         $request->validate([
             'idEjidatario'        => 'required|exists:ejidatarios,idEjidatario',
             'tipo_apoyo'          => 'required|string|max:100',
-            'fecha_entrega'       => 'required|before_or_equal:2100-12-31',
+            'fecha_entrega'       => ['required','date_format:Y-m-d','before_or_equal:2100-12-31',],
             'nombre_representante'=> 'required|string|max:100',
             'monto'               => 'required|numeric|min:0',
             'cantidad'            => 'required|integer|min:0',
@@ -53,11 +53,15 @@ class ApoyoSocialController extends Controller
         $request->validate([
             'idEjidatario'        => 'required|exists:ejidatarios,idEjidatario',
             'tipo_apoyo'          => 'required|string|max:100',
-            'fecha_entrega'       => 'required|date',
+                'fecha_entrega' => [
+        'required',
+        'date_format:Y-m-d',
+        'before_or_equal:2100-12-31',
+    ],
             'nombre_representante'=> 'required|string|max:100',
-            'monto'               => 'nullable|numeric|min:0',
-            'cantidad'            => 'nullable|integer|min:0',
-            'num_beneficiarios'   => 'nullable|integer|min:1',
+            'monto'               => 'required|numeric|min:0',
+            'cantidad'            => 'required|integer|min:0',
+            'num_beneficiarios'   => 'required|integer|min:1',
             'estatus'             => 'required|in:entregado,pendiente,cancelado,aprobado',
         ]);
 

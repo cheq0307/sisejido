@@ -28,10 +28,10 @@ class ApoyoSocialController extends Controller
     'fecha_entrega' => [
         'bail',
         'required',
-        'regex:/^\d{4}-\d{2}-\d{2}$/',
         'date_format:Y-m-d',
-        'before_or_equal:2100-12-31',
-    ],            'nombre_representante'=> 'required|string|max:100',
+        'regex:/^(19|20)\d{2}-\d{2}-\d{2}$/',
+    ],
+            'nombre_representante'=> 'required|string|max:100',
             'monto'               => 'required|numeric|min:0',
             'cantidad'            => 'required|integer|min:0',
             'num_beneficiarios'   => 'required|integer|min:1',

@@ -165,7 +165,9 @@
                 <label class="form-label fw-semibold">Superficie (ha)</label>
                 <input type="text" name="superficie" class="form-control" 
        placeholder="ej: 3.5" required {{ $ejidatario ? '' : 'disabled' }}>
-            </div>
+    <input type="text" name="ubicacion" class="form-control"
+       required {{ $ejidatario ? '' : 'disabled' }}>        
+    </div>
             <div class="col-md-3">
                 <label class="form-label fw-semibold">Uso de Suelo</label>
                 <select name="usoSuelo" class="form-select" {{ $ejidatario ? '' : 'disabled' }}>

@@ -137,28 +137,31 @@ class ParcelaController extends Controller
     public function store(Request $request)
     {
         // 1. Validar campos obligatorios
-        $request->validate([
-            'numeroEjidatario' => 'required|numeric',
-            'noParcela'        => 'required|numeric|min:1',
-            'superficie'       => 'required',   // ← agregar
-            'ubicacion'        => 'nullable|string|max:255',
-            'fechaExpedicion'  => [
-                'nullable',
-                'date_format:Y-m-d',
-                function ($attribute, $value, $fail) {
-                    if (!$value) return;
-                    $year = (int) substr($value, 0, 4);
-                    if ($year < 1900 || $year > 2100) {
-                        $fail('El año de la fecha debe estar entre 1900 y 2100.');
-                    }
-                },
-            ],
-        ], [
-            'numeroEjidatario.required' => 'Debes buscar un ejidatario antes de guardar.',
-            'noParcela.required'        => 'El número de parcela es obligatorio.',
-            'noParcela.numeric'         => 'El número de parcela debe ser un número.',
-            'superficie.required'       => 'La superficie es obligatoria.',
-        ]);
+$request->validate([
+    'numeroEjidatario' => 'required|numeric',
+    'noParcela'        => 'required|numeric|min:1',
+    'superficie'       => 'required|string|max:100',
+    'ubicacion'        => 'required|string|max:255',
+    'usoSuelo'         => 'required|numeric',
+    'fechaExpedicion'  => [
+        'nullable',
+        'date_format:Y-m-d',
+        function ($attribute, $value, $fail) {
+            if (!$value) return;
+            $year = (int) substr($value, 0, 4);
+            if ($year < 1900 || $year > 2100) {
+                $fail('El año de la fecha debe estar entre 1900 y 2100.');
+            }
+        },
+    ],
+], [
+    'numeroEjidatario.required' => 'Debes buscar un ejidatario antes de guardar.',
+    'noParcela.required'        => 'El número de parcela es obligatorio.',
+    'noParcela.numeric'         => 'El número de parcela debe ser un número.',
+    'superficie.required'       => 'La superficie es obligatoria.',
+    'ubicacion.required'        => 'La ubicación es obligatoria.',
+    'usoSuelo.required'         => 'El uso de suelo es obligatorio.',
+]);
 
         // 2. Verificar que el ejidatario exista
         $ejidatario = Ejidatario::where('numeroEjidatario', $request->numeroEjidatario)->first();

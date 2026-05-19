@@ -25,7 +25,7 @@ class ApoyoSocialController extends Controller
         $request->validate([
             'idEjidatario'        => 'required|exists:ejidatarios,idEjidatario',
             'tipo_apoyo'          => 'required|string|max:100',
-            'fecha_entrega'       => ['required','date_format:Y-m-d','before_or_equal:2100-12-31',],
+            'fecha_entrega'       => ['required','regex:/^\d{4}-\d{2}-\d{2}$/','date','before_or_equal:2100-12-31',],
             'nombre_representante'=> 'required|string|max:100',
             'monto'               => 'required|numeric|min:0',
             'cantidad'            => 'required|integer|min:0',

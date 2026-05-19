@@ -77,7 +77,7 @@
                                 @else —
                                 @endif
                             </td>
-                            <td>{{ \ Carbon\Carbon::parse($a->fecha_entrega)->format('d/m/Y') }}</td>
+                            <td>{{ \Carbon\Carbon::parse($a->fecha_entrega)->format('d/m/Y') }}</td>
                             <td>{{ $a->nombre_representante }}</td>
                             <td class="text-center">{{ $a->num_beneficiarios }}</td>
                             <td class="text-center">
@@ -91,7 +91,6 @@
                                     <span class="badge bg-danger">Cancelado</span>
                                 @endif
                             </td>
-   
                             <td class="text-center">
                                 <a href="{{ route('apoyos.edit', $a->idApoyo) }}"
                                    class="btn btn-sm btn-ejidal">

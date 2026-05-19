@@ -52,7 +52,6 @@
         .coord-ayuda { background:#f0f7ff; border:1px solid #bfdbfe; border-radius:8px; padding:9px 13px; font-size:12px; color:#1e40af; margin-bottom:10px; }
         .coord-ayuda code { background:#dbeafe; border-radius:3px; padding:1px 5px; font-size:11px; }
 
-        /* Zona de carga de archivo */
         #zona-archivo {
             border:2px dashed #cbd5e1; border-radius:10px; padding:18px;
             text-align:center; cursor:pointer; transition:all .2s;
@@ -64,10 +63,8 @@
         #zona-archivo .subtitulo { font-size:11px; color:#9ca3af; margin-top:3px; }
         #archivo-input { display:none; }
 
-        /* Alerta de errores de importación */
         #errores-importacion { display:none; }
 
-        /* Badge puntos */
         .badge-puntos-min { font-size:10px; padding:2px 7px; background:#fef3c7; color:#92400e; border:1px solid #fde68a; border-radius:20px; }
         .badge-puntos-ok  { font-size:10px; padding:2px 7px; background:#d1fae5; color:#065f46; border:1px solid #a7f3d0; border-radius:20px; }
 
@@ -82,7 +79,6 @@
         .card-header-ejidal { background:#2d6a2d; color:#fff; font-weight:600; }
         .text-ejidal { color:#2d6a2d; }
 
-        /* Tooltip error */
         .coord-error-msg { font-size:10px; color:#dc2626; margin-top:2px; display:none; }
     </style>
 </head>
@@ -104,21 +100,24 @@
 </div>
 
 @if($error)
-<div class="alert alert-danger"><i class="fas fa-exclamation-circle me-2"></i>{{ $error }}</div>
+    <div class="alert alert-danger"><i class="fas fa-exclamation-circle me-2"></i>{{ $error }}</div>
+@endif
+@if(session('status') === 'error')
+    <div class="alert alert-danger"><i class="fas fa-exclamation-circle me-2"></i>{{ session('mensaje') }}</div>
 @endif
 @if(session('status') === 'success')
-<div class="alert alert-success"><i class="fas fa-check-circle me-2"></i>Información guardada correctamente.</div>
+    <div class="alert alert-success"><i class="fas fa-check-circle me-2"></i>Información guardada correctamente.</div>
 @endif
-
-{{-- Buscador parcela --}}
-<form method="GET" action="{{ route('parcelas.ver') }}" class="mb-4">
-    <div class="input-group">
-        <span class="input-group-text"><i class="fas fa-search"></i></span>
-        <input type="number" class="form-control" name="noParcela"
-               placeholder="Buscar parcela por número..." value="{{ request('noParcela') }}" required>
-        <button class="btn btn-ejidal">Buscar</button>
+@if($errors->any())
+    <div class="alert alert-danger">
+        <strong><i class="fas fa-exclamation-triangle me-2"></i>Errores:</strong>
+        <ul class="mb-0 mt-1">
+            @foreach($errors->all() as $e)
+                <li>{{ $e }}</li>
+            @endforeach
+        </ul>
     </div>
-</form>
+@endif
 
 {{-- Buscador ejidatario --}}
 <div class="card card-ejidal mb-3">
@@ -142,32 +141,53 @@
     </div>
 </div>
 
-{{-- Formulario --}}
+{{-- Formulario principal --}}
 <form method="POST" action="{{ route('parcelas.store') }}" id="form-parcela">
 @csrf
 <input type="hidden" name="numeroEjidatario" value="{{ $ejidatario->numeroEjidatario ?? '' }}">
 <input type="hidden" name="idEjidatario"     value="{{ $ejidatario->idEjidatario ?? '' }}">
 
 @if(!$ejidatario)
-<div class="alert alert-warning"><i class="fas fa-exclamation-triangle me-2"></i>Debes buscar un ejidatario válido antes de guardar.</div>
+<div class="alert alert-warning">
+    <i class="fas fa-exclamation-triangle me-2"></i>Debes buscar un ejidatario válido antes de guardar.
+</div>
 @endif
 
-{{-- Datos parcela --}}
+{{-- ── DATOS DE LA PARCELA ── --}}
 <div class="card card-ejidal mb-3">
-    <div class="card-header card-header-ejidal"><i class="fas fa-map-marker-alt me-2"></i>Datos de la Parcela</div>
+    <div class="card-header card-header-ejidal">
+        <i class="fas fa-map-marker-alt me-2"></i>Datos de la Parcela
+    </div>
     <div class="card-body">
         <div class="row mb-3">
             <div class="col-md-3">
-                <label class="form-label fw-semibold">No. Parcela <span class="text-danger">*</span></label>
-                <input type="number" name="noParcela" class="form-control" {{ $ejidatario ? '' : 'disabled' }}>
+                <label class="form-label fw-semibold">
+                    No. Parcela <span class="text-danger">*</span>
+                </label>
+                <input type="number" name="noParcela"
+                       class="form-control @error('noParcela') is-invalid @enderror"
+                       value="{{ old('noParcela') }}"
+                       min="1" required
+                       {{ $ejidatario ? '' : 'disabled' }}>
+                @error('noParcela')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
             </div>
+
             <div class="col-md-3">
-                <label class="form-label fw-semibold">Superficie (ha)</label>
-                <input type="text" name="superficie" class="form-control" 
-       placeholder="ej: 3.5" required {{ $ejidatario ? '' : 'disabled' }}>
-    <input type="text" name="ubicacion" class="form-control"
-       required {{ $ejidatario ? '' : 'disabled' }}>        
-    </div>
+                <label class="form-label fw-semibold">
+                    Superficie (ha) <span class="text-danger">*</span>
+                </label>
+                <input type="text" name="superficie"
+                       class="form-control @error('superficie') is-invalid @enderror"
+                       value="{{ old('superficie') }}"
+                       placeholder="ej: 3.5" required
+                       {{ $ejidatario ? '' : 'disabled' }}>
+                @error('superficie')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+            </div>
+
             <div class="col-md-3">
                 <label class="form-label fw-semibold">Uso de Suelo</label>
                 <select name="usoSuelo" class="form-select" {{ $ejidatario ? '' : 'disabled' }}>
@@ -176,15 +196,25 @@
                     @endforeach
                 </select>
             </div>
+
             <div class="col-md-3">
-                <label class="form-label fw-semibold">Ubicación</label>
-                <input type="text" name="ubicacion" class="form-control" {{ $ejidatario ? '' : 'disabled' }}>
+                <label class="form-label fw-semibold">
+                    Ubicación <span class="text-danger">*</span>
+                </label>
+                <input type="text" name="ubicacion"
+                       class="form-control @error('ubicacion') is-invalid @enderror"
+                       value="{{ old('ubicacion') }}"
+                       required
+                       {{ $ejidatario ? '' : 'disabled' }}>
+                @error('ubicacion')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
             </div>
         </div>
     </div>
 </div>
 
-{{-- Colindancias --}}
+{{-- ── COLINDANCIAS ── --}}
 <div class="card card-ejidal mb-3">
     <div class="card-header card-header-ejidal"><i class="fas fa-compass me-2"></i>Colindancias</div>
     <div class="card-body">
@@ -192,14 +222,16 @@
             @foreach(['norte','sur','este','oeste','noreste','noroeste','sureste','suroeste'] as $c)
             <div class="col-md-3">
                 <label class="form-label fw-semibold" style="font-size:13px">{{ ucfirst($c) }}</label>
-                <input type="text" name="{{ $c }}" class="form-control form-control-sm" {{ $ejidatario ? '' : 'disabled' }}>
+                <input type="text" name="{{ $c }}" class="form-control form-control-sm"
+                       value="{{ old($c) }}"
+                       {{ $ejidatario ? '' : 'disabled' }}>
             </div>
             @endforeach
         </div>
     </div>
 </div>
 
-{{-- Coordenadas --}}
+{{-- ── COORDENADAS GPS ── --}}
 <div class="card card-ejidal mb-3">
     <div class="card-header card-header-ejidal d-flex justify-content-between align-items-center">
         <span><i class="fas fa-map-pin me-2"></i>Coordenadas GPS del Polígono</span>
@@ -207,16 +239,16 @@
     </div>
     <div class="card-body">
 
-        {{-- Ayuda --}}
         <div class="coord-ayuda">
             <i class="fas fa-info-circle me-2"></i>
             Formato <strong>decimal</strong>. Latitud: <code>19.307519...</code> &nbsp;|&nbsp;
             Longitud: <code>-98.415076...</code> (negativo para México — se corrige automáticamente si pones positivo).
-            Soporta hasta <strong>15 decimales</strong>. Mín. 3 puntos para el polígono.
+            Mín. 3 puntos para el polígono.
         </div>
 
         {{-- Zona carga de archivo --}}
-        <div id="zona-archivo" onclick="document.getElementById('archivo-input').click()"
+        <div id="zona-archivo"
+             onclick="document.getElementById('archivo-input').click()"
              ondragover="event.preventDefault();this.classList.add('dragover')"
              ondragleave="this.classList.remove('dragover')"
              ondrop="manejarDrop(event)">
@@ -229,11 +261,9 @@
         </div>
         <input type="file" id="archivo-input" accept=".txt,.csv" onchange="cargarArchivo(this)">
 
-        {{-- Errores de importación --}}
         <div id="errores-importacion" class="alert alert-warning py-2 mb-2" style="font-size:12px"></div>
 
         <div class="row g-3">
-            {{-- Tabla de puntos --}}
             <div class="col-lg-7">
                 <table class="coord-table">
                     <thead>
@@ -261,7 +291,6 @@
                 </div>
             </div>
 
-            {{-- Mini mapa --}}
             <div class="col-lg-5">
                 <div id="mapa-preview">
                     <div id="mapa-preview-inner"></div>
@@ -279,29 +308,45 @@
     </div>
 </div>
 
-{{-- Info administrativa --}}
+{{-- ── INFORMACIÓN ADMINISTRATIVA ── --}}
 <div class="card card-ejidal mb-3">
-    <div class="card-header card-header-ejidal"><i class="fas fa-file-alt me-2"></i>Información Administrativa</div>
+    <div class="card-header card-header-ejidal">
+        <i class="fas fa-file-alt me-2"></i>Información Administrativa
+    </div>
     <div class="card-body">
         <div class="row mb-3">
             <div class="col-md-5">
                 <label class="form-label fw-semibold">Número de inscripción RAN</label>
-                <input type="text" name="num_inscripcionRAN" class="form-control" {{ $ejidatario ? '' : 'disabled' }}>
+                <input type="text" name="num_inscripcionRAN" class="form-control"
+                       value="{{ old('num_inscripcionRAN') }}"
+                       {{ $ejidatario ? '' : 'disabled' }}>
             </div>
             <div class="col-md-7">
                 <label class="form-label fw-semibold">Clave núcleo agrario</label>
-                <input type="text" name="claveNucleoAgrario" class="form-control" {{ $ejidatario ? '' : 'disabled' }}>
+                <input type="text" name="claveNucleoAgrario" class="form-control"
+                       value="{{ old('claveNucleoAgrario') }}"
+                       {{ $ejidatario ? '' : 'disabled' }}>
             </div>
         </div>
         <div class="row">
             <div class="col-md-5">
                 <label class="form-label fw-semibold">Comunidad</label>
                 <input type="text" name="comunidad" class="form-control"
-                       placeholder="San Rafael Ixtapalucan" {{ $ejidatario ? '' : 'disabled' }}>
+                       value="{{ old('comunidad') }}"
+                       placeholder="San Rafael Ixtapalucan"
+                       {{ $ejidatario ? '' : 'disabled' }}>
             </div>
             <div class="col-md-7">
                 <label class="form-label fw-semibold">Fecha de expedición</label>
-                <input type="date" name="fechaExpedicion" class="form-control" {{ $ejidatario ? '' : 'disabled' }}>
+                <input type="date" name="fechaExpedicion" id="fechaExpedicion"
+                       class="form-control @error('fechaExpedicion') is-invalid @enderror"
+                       value="{{ old('fechaExpedicion') }}"
+                       min="1900-01-01" max="2100-12-31"
+                       {{ $ejidatario ? '' : 'disabled' }}>
+                @error('fechaExpedicion')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+                <div class="form-text text-muted" style="font-size:11px">Año entre 1900 y 2100</div>
             </div>
         </div>
     </div>
@@ -329,25 +374,18 @@
 <script>
 const HABILITADO = {{ $ejidatario ? 'true' : 'false' }};
 
-// ── Numeración profesional tipo RAN ─────────────────────────
-// P1, P2, P3... sin límite
-function etiquetaPunto(n) {
-    return 'P' + n;
-}
+function etiquetaPunto(n) { return 'P' + n; }
 
-// ── Estado ───────────────────────────────────────────────────
-let puntos = []; // [{ num, lat, lng }]
+let puntos = [];
 let mapaIniciado = false;
 let mapaPreview  = null;
 let polyPreview  = null;
 let markersPreview = [];
 
-// ── Inicializar con 4 puntos vacíos ─────────────────────────
 function init() {
     for (let i = 0; i < 4; i++) agregarPunto(false);
 }
 
-// ── Agregar fila ─────────────────────────────────────────────
 function agregarPunto(actualizar = true) {
     if (!HABILITADO) return;
     const num = puntos.length + 1;
@@ -362,16 +400,14 @@ function agregarPunto(actualizar = true) {
             <input type="hidden" name="punto[]" id="nombre_${idx}" value="${etiquetaPunto(num)}">
         </td>
         <td>
-            <input type="text" inputmode="decimal"
-                   name="coordenadaX[]" id="lat_${idx}"
+            <input type="text" inputmode="decimal" name="coordenadaX[]" id="lat_${idx}"
                    class="coord-input" placeholder="19.307519..."
                    oninput="actualizarPunto(${idx}, 'lat', this.value)"
                    ${HABILITADO ? '' : 'disabled'}>
             <div class="coord-error-msg" id="err_lat_${idx}"></div>
         </td>
         <td>
-            <input type="text" inputmode="decimal"
-                   name="coordenadaY[]" id="lng_${idx}"
+            <input type="text" inputmode="decimal" name="coordenadaY[]" id="lng_${idx}"
                    class="coord-input" placeholder="-98.415076..."
                    oninput="actualizarPunto(${idx}, 'lng', this.value)"
                    ${HABILITADO ? '' : 'disabled'}>
@@ -386,7 +422,6 @@ function agregarPunto(actualizar = true) {
     if (actualizar) { actualizarMapa(); actualizarIndicadores(); }
 }
 
-// ── Quitar fila y renumerar ───────────────────────────────────
 function quitarPunto(idx) {
     const fila = document.getElementById('fila_' + idx);
     if (fila) fila.remove();
@@ -396,9 +431,7 @@ function quitarPunto(idx) {
     actualizarIndicadores();
 }
 
-// ── Renumerar todos los puntos después de quitar uno ─────────
 function renumerarTodos() {
-    const filas = document.querySelectorAll('#tbody-coordenadas tr');
     puntos.forEach((p, i) => {
         p.num = i + 1;
         const badge = document.getElementById('badge_' + i);
@@ -408,12 +441,9 @@ function renumerarTodos() {
     });
 }
 
-// ── Actualizar valor de punto ─────────────────────────────────
 function actualizarPunto(idx, campo, valor) {
     if (!puntos[idx]) return;
-
-    // Limpiar y validar
-    const num = parsearCoordenada(valor, campo);
+    const num = parsearCoordenada(valor);
     const errEl = document.getElementById('err_' + campo + '_' + idx);
     const input = document.getElementById(campo + '_' + idx);
 
@@ -426,7 +456,6 @@ function actualizarPunto(idx, campo, valor) {
         if (input) input.className = 'coord-input invalido';
         if (errEl) { errEl.style.display = 'block'; errEl.textContent = 'Valor inválido — solo números decimales'; }
     } else {
-        // Corrección automática: longitud México debe ser negativa
         let val = num;
         if (campo === 'lng' && val > 0 && val <= 120) {
             val = -val;
@@ -442,83 +471,62 @@ function actualizarPunto(idx, campo, valor) {
     actualizarIndicadores();
 }
 
-// ── Parsear coordenada flexible ───────────────────────────────
-function parsearCoordenada(str, campo) {
+function parsearCoordenada(str) {
     if (typeof str !== 'string') str = String(str);
-    // Quitar espacios, comas al final
     str = str.trim().replace(/,+$/, '');
-    // Solo permitir dígitos, punto, signo negativo
     if (!/^-?\d*\.?\d*$/.test(str)) return null;
     const n = parseFloat(str);
     if (isNaN(n)) return null;
     return n;
 }
 
-// ── Validar rango geográfico México ──────────────────────────
 function validarRango(idx, campo, val) {
     const input = document.getElementById(campo + '_' + idx);
     const errEl = document.getElementById('err_' + campo + '_' + idx);
-    let ok = true;
-    let msg = '';
-
-    if (campo === 'lat' && (val < 14 || val > 33)) {
-        ok = false; msg = 'Latitud fuera de México (14°–33°)';
-    }
-    if (campo === 'lng' && (val < -120 || val > -85)) {
-        ok = false; msg = 'Longitud fuera de México (-85° a -120°)';
-    }
-
+    let ok = true, msg = '';
+    if (campo === 'lat' && (val < 14 || val > 33))   { ok = false; msg = 'Latitud fuera de México (14°–33°)'; }
+    if (campo === 'lng' && (val < -120 || val > -85)) { ok = false; msg = 'Longitud fuera de México (-85° a -120°)'; }
     if (input) input.className = 'coord-input ' + (ok ? 'valido' : 'invalido');
     if (errEl) { errEl.style.display = ok ? 'none' : 'block'; errEl.textContent = msg; }
 }
 
-// ── Detectar duplicados ───────────────────────────────────────
 function verificarDuplicados() {
     const claves = {};
     let hayDup = false;
-
     puntos.forEach((p, i) => {
         if (p.lat === '' || p.lng === '') return;
         const clave = `${p.lat},${p.lng}`;
         const latEl = document.getElementById('lat_' + i);
         const lngEl = document.getElementById('lng_' + i);
-
         if (claves[clave] !== undefined) {
             hayDup = true;
             if (latEl) latEl.classList.add('duplicado');
             if (lngEl) lngEl.classList.add('duplicado');
-            // Marcar el primero también
-            const primerIdx = claves[clave];
-            const latP = document.getElementById('lat_' + primerIdx);
-            const lngP = document.getElementById('lng_' + primerIdx);
-            if (latP) latP.classList.add('duplicado');
-            if (lngP) lngP.classList.add('duplicado');
+            const pi = claves[clave];
+            const lp = document.getElementById('lat_' + pi);
+            const lq = document.getElementById('lng_' + pi);
+            if (lp) lp.classList.add('duplicado');
+            if (lq) lq.classList.add('duplicado');
         } else {
             claves[clave] = i;
-            if (latEl && latEl.classList.contains('duplicado')) latEl.classList.remove('duplicado');
-            if (lngEl && lngEl.classList.contains('duplicado')) lngEl.classList.remove('duplicado');
+            if (latEl) latEl.classList.remove('duplicado');
+            if (lngEl) lngEl.classList.remove('duplicado');
         }
     });
-
     const msgDup = document.getElementById('msg-duplicados');
     if (msgDup) msgDup.style.display = hayDup ? 'inline' : 'none';
 }
 
-// ── Puntos válidos para el mapa ───────────────────────────────
 function puntosValidos() {
     return puntos
-        .filter(p => p.lat !== '' && p.lng !== '' &&
-                     !isNaN(p.lat) && !isNaN(p.lng) &&
-                     p.lat >= 14 && p.lat <= 33 &&
-                     p.lng >= -120 && p.lng <= -85)
+        .filter(p => p.lat !== '' && p.lng !== '' && !isNaN(p.lat) && !isNaN(p.lng) &&
+                     p.lat >= 14 && p.lat <= 33 && p.lng >= -120 && p.lng <= -85)
         .map(p => [parseFloat(p.lat), parseFloat(p.lng)]);
 }
 
-// ── Actualizar mini mapa ──────────────────────────────────────
 function actualizarMapa() {
     const pts = puntosValidos();
     const hint = document.getElementById('preview-hint');
-
     if (pts.length < 2) {
         if (hint) hint.style.display = 'block';
         if (polyPreview && mapaPreview) { mapaPreview.removeLayer(polyPreview); polyPreview = null; }
@@ -526,22 +534,15 @@ function actualizarMapa() {
         markersPreview = [];
         return;
     }
-
     if (hint) hint.style.display = 'none';
-
     if (!mapaIniciado) {
-        mapaPreview = L.map('mapa-preview-inner', {
-            zoomControl: false, attributionControl: false,
-            dragging: true, scrollWheelZoom: true,
-        });
+        mapaPreview = L.map('mapa-preview-inner', { zoomControl:false, attributionControl:false, dragging:true, scrollWheelZoom:true });
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom:20 }).addTo(mapaPreview);
         mapaIniciado = true;
     }
-
     markersPreview.forEach(m => mapaPreview.removeLayer(m));
     markersPreview = [];
     if (polyPreview) { mapaPreview.removeLayer(polyPreview); polyPreview = null; }
-
     if (pts.length >= 3) {
         polyPreview = L.polygon(pts, { color:'#1a4c8b', weight:2, fillColor:'#2563eb', fillOpacity:.22 }).addTo(mapaPreview);
         mapaPreview.fitBounds(polyPreview.getBounds(), { padding:[18,18] });
@@ -549,10 +550,8 @@ function actualizarMapa() {
         const linea = L.polyline(pts, { color:'#1a4c8b', weight:2 }).addTo(mapaPreview);
         mapaPreview.fitBounds(linea.getBounds(), { padding:[30,30] });
     }
-
-    // Markers numerados P1, P2...
     let pNum = 0;
-    puntos.forEach((p, i) => {
+    puntos.forEach((p) => {
         if (p.lat === '' || p.lng === '') return;
         const lat = parseFloat(p.lat), lng = parseFloat(p.lng);
         if (isNaN(lat) || isNaN(lng) || lat < 14 || lat > 33 || lng < -120 || lng > -85) return;
@@ -566,20 +565,16 @@ function actualizarMapa() {
     });
 }
 
-// ── Indicadores de estado ─────────────────────────────────────
 function actualizarIndicadores() {
     const pts = puntosValidos();
     const badge = document.getElementById('badge-puntos');
     const count = document.getElementById('count-puntos');
     const indDiv = document.getElementById('indicadores');
-
     if (count) count.textContent = pts.length;
-
     if (badge) {
         if (pts.length >= 3) { badge.className = 'badge-puntos-ok'; badge.textContent = '✓ Polígono listo'; }
         else { badge.className = 'badge-puntos-min'; badge.textContent = `Faltan ${3 - pts.length} punto(s)`; }
     }
-
     if (indDiv) {
         indDiv.innerHTML = '';
         puntos.forEach((p, i) => {
@@ -594,10 +589,7 @@ function actualizarIndicadores() {
     }
 }
 
-// ══════════════════════════════════════════════════════════════
-//  CARGA DESDE ARCHIVO TXT / CSV
-// ══════════════════════════════════════════════════════════════
-
+// ── Carga desde archivo ──────────────────────────────────────
 function manejarDrop(event) {
     event.preventDefault();
     document.getElementById('zona-archivo').classList.remove('dragover');
@@ -616,125 +608,54 @@ function procesarArchivo(file) {
         mostrarErroresImportacion(['Solo se aceptan archivos .TXT o .CSV']);
         return;
     }
-
     const reader = new FileReader();
-    reader.onload = function(e) {
-        const texto = e.target.result;
-        importarCoordenadas(texto, file.name);
-    };
+    reader.onload = e => importarCoordenadas(e.target.result, file.name);
     reader.readAsText(file);
 }
 
 function importarCoordenadas(texto, nombreArchivo) {
     const lineas = texto.split(/\r?\n/).filter(l => l.trim() !== '');
-    const errores = [];
-    const nuevasPuntos = [];
-
+    const errores = [], nuevasPuntos = [];
     lineas.forEach((linea, i) => {
         linea = linea.trim();
-
-        // Saltar líneas de encabezado comunes
         if (/^(lat|lng|x|y|punto|coord|#)/i.test(linea)) return;
-
-        // Separadores: coma, punto y coma, tab, espacio
         const partes = linea.split(/[,;\t ]+/).filter(p => p !== '');
-
-        if (partes.length < 2) {
-            errores.push(`Línea ${i+1}: "${linea}" — formato inválido (necesita lat y lng)`);
-            return;
-        }
-
+        if (partes.length < 2) { errores.push(`Línea ${i+1}: formato inválido`); return; }
         const lat = parseFloat(partes[0].replace(',', '.'));
-        const lng = parseFloat(partes[1].replace(',', '.'));
-
-        if (isNaN(lat) || isNaN(lng)) {
-            errores.push(`Línea ${i+1}: "${linea}" — no son números válidos`);
-            return;
-        }
-
-        // Corrección automática de longitud positiva
-        let lngFinal = lng;
-        if (lng > 0 && lng <= 120) lngFinal = -lng;
-
-        // Validar rango México
-        if (lat < 14 || lat > 33) {
-            errores.push(`Línea ${i+1}: Latitud ${lat} fuera del rango de México (14°-33°)`);
-            return;
-        }
-        if (lngFinal < -120 || lngFinal > -85) {
-            errores.push(`Línea ${i+1}: Longitud ${lngFinal} fuera del rango de México`);
-            return;
-        }
-
-        // Verificar duplicado con los ya cargados
-        const dup = nuevasPuntos.find(p => p.lat === lat && p.lng === lngFinal);
-        if (dup) {
-            errores.push(`Línea ${i+1}: Punto duplicado (${lat}, ${lngFinal})`);
-            return;
-        }
-
-        nuevasPuntos.push({ lat, lng: lngFinal });
+        let lng = parseFloat(partes[1].replace(',', '.'));
+        if (isNaN(lat) || isNaN(lng)) { errores.push(`Línea ${i+1}: no son números válidos`); return; }
+        if (lng > 0 && lng <= 120) lng = -lng;
+        if (lat < 14 || lat > 33)   { errores.push(`Línea ${i+1}: latitud fuera de México`); return; }
+        if (lng < -120 || lng > -85) { errores.push(`Línea ${i+1}: longitud fuera de México`); return; }
+        if (nuevasPuntos.find(p => p.lat === lat && p.lng === lng)) { errores.push(`Línea ${i+1}: punto duplicado`); return; }
+        nuevasPuntos.push({ lat, lng });
     });
-
-    // Mostrar errores si los hay (pero continuar con los válidos)
-    if (errores.length > 0) {
-        mostrarErroresImportacion(errores);
-    } else {
-        ocultarErroresImportacion();
-    }
-
-    if (nuevasPuntos.length === 0) {
-        mostrarErroresImportacion([...errores, 'No se encontraron coordenadas válidas en el archivo.']);
-        return;
-    }
-
-    // Limpiar tabla actual
+    if (errores.length > 0) mostrarErroresImportacion(errores); else ocultarErroresImportacion();
+    if (nuevasPuntos.length === 0) { mostrarErroresImportacion([...errores, 'No se encontraron coordenadas válidas.']); return; }
     document.getElementById('tbody-coordenadas').innerHTML = '';
     puntos = [];
-
-    // Cargar puntos nuevos
     nuevasPuntos.forEach(p => {
-        const num = puntos.length + 1;
-        const idx = puntos.length;
+        const num = puntos.length + 1, idx = puntos.length;
         puntos.push({ num, lat: p.lat, lng: p.lng });
-
         const tr = document.createElement('tr');
         tr.id = 'fila_' + idx;
         tr.innerHTML = `
-            <td>
-                <span class="punto-badge" id="badge_${idx}">${etiquetaPunto(num)}</span>
-                <input type="hidden" name="punto[]" id="nombre_${idx}" value="${etiquetaPunto(num)}">
-            </td>
-            <td>
-                <input type="text" inputmode="decimal" name="coordenadaX[]" id="lat_${idx}"
+            <td><span class="punto-badge" id="badge_${idx}">${etiquetaPunto(num)}</span>
+                <input type="hidden" name="punto[]" id="nombre_${idx}" value="${etiquetaPunto(num)}"></td>
+            <td><input type="text" inputmode="decimal" name="coordenadaX[]" id="lat_${idx}"
                        class="coord-input valido" value="${p.lat}"
-                       oninput="actualizarPunto(${idx}, 'lat', this.value)"
-                       ${HABILITADO ? '' : 'disabled'}>
-            </td>
-            <td>
-                <input type="text" inputmode="decimal" name="coordenadaY[]" id="lng_${idx}"
+                       oninput="actualizarPunto(${idx}, 'lat', this.value)" ${HABILITADO ? '' : 'disabled'}></td>
+            <td><input type="text" inputmode="decimal" name="coordenadaY[]" id="lng_${idx}"
                        class="coord-input valido" value="${p.lng}"
-                       oninput="actualizarPunto(${idx}, 'lng', this.value)"
-                       ${HABILITADO ? '' : 'disabled'}>
-            </td>
-            <td>
-                ${num > 3 ? `<button type="button" class="btn-rm" onclick="quitarPunto(${idx})" title="Quitar punto">
-                    <i class="fas fa-times"></i>
-                </button>` : ''}
-            </td>`;
+                       oninput="actualizarPunto(${idx}, 'lng', this.value)" ${HABILITADO ? '' : 'disabled'}></td>
+            <td>${num > 3 ? `<button type="button" class="btn-rm" onclick="quitarPunto(${idx})"><i class="fas fa-times"></i></button>` : ''}</td>`;
         document.getElementById('tbody-coordenadas').appendChild(tr);
     });
-
-    // Actualizar zona de archivo
-    const zona = document.getElementById('zona-archivo');
-    zona.innerHTML = `
+    document.getElementById('zona-archivo').innerHTML = `
         <i class="fas fa-check-circle" style="color:#16a34a"></i>
         <div class="titulo" style="color:#16a34a">${nombreArchivo}</div>
-        <div class="subtitulo">${nuevasPuntos.length} coordenadas cargadas correctamente</div>
-        <div class="subtitulo mt-1" style="color:#6366f1;cursor:pointer" onclick="document.getElementById('archivo-input').click()">
-            Cambiar archivo
-        </div>`;
-
+        <div class="subtitulo">${nuevasPuntos.length} coordenadas cargadas</div>
+        <div class="subtitulo mt-1" style="color:#6366f1;cursor:pointer" onclick="document.getElementById('archivo-input').click()">Cambiar archivo</div>`;
     actualizarMapa();
     actualizarIndicadores();
 }
@@ -742,21 +663,51 @@ function importarCoordenadas(texto, nombreArchivo) {
 function mostrarErroresImportacion(errores) {
     const div = document.getElementById('errores-importacion');
     div.style.display = 'block';
-    div.innerHTML = '<strong><i class="fas fa-exclamation-triangle me-1"></i>Advertencias al importar:</strong><ul class="mb-0 mt-1">'
-        + errores.map(e => `<li>${e}</li>`).join('')
-        + '</ul>';
+    div.innerHTML = '<strong><i class="fas fa-exclamation-triangle me-1"></i>Advertencias:</strong><ul class="mb-0 mt-1">'
+        + errores.map(e => `<li>${e}</li>`).join('') + '</ul>';
 }
-
 function ocultarErroresImportacion() {
     document.getElementById('errores-importacion').style.display = 'none';
 }
 
+// ── Validar fecha ────────────────────────────────────────────
+document.getElementById('fechaExpedicion')?.addEventListener('change', function () {
+    if (!this.value) return;
+    const año = parseInt(this.value.split('-')[0]);
+    if (año < 1900 || año > 2100) {
+        this.classList.add('is-invalid');
+        this.setCustomValidity('El año debe estar entre 1900 y 2100.');
+    } else {
+        this.classList.remove('is-invalid');
+        this.setCustomValidity('');
+    }
+});
+
+// ── Evitar submit con Enter en campos de texto ───────────────
+document.getElementById('form-parcela')?.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA' && e.target.type !== 'submit') {
+        e.preventDefault();
+    }
+});
+
 // ── Validar antes de enviar ───────────────────────────────────
-document.getElementById('form-parcela')?.addEventListener('submit', function(e) {
+document.getElementById('form-parcela')?.addEventListener('submit', function (e) {
+    // Validar fecha
+    const fecha = document.getElementById('fechaExpedicion');
+    if (fecha?.value) {
+        const año = parseInt(fecha.value.split('-')[0]);
+        if (año < 1900 || año > 2100) {
+            e.preventDefault();
+            fecha.classList.add('is-invalid');
+            fecha.focus();
+            return;
+        }
+    }
+    // Validar coordenadas
     const pts = puntosValidos();
     if (pts.length > 0 && pts.length < 3) {
         e.preventDefault();
-        alert('Si capturas coordenadas, necesitas mínimo 3 puntos válidos para el polígono.');
+        alert('Si capturas coordenadas, necesitas mínimo 3 puntos válidos.');
         return;
     }
     // Verificar duplicados
@@ -772,7 +723,6 @@ document.getElementById('form-parcela')?.addEventListener('submit', function(e) 
     }
 });
 
-// ── Iniciar ───────────────────────────────────────────────────
 init();
 </script>
 

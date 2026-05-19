@@ -27,9 +27,9 @@ class ApoyoSocialController extends Controller
             'tipo_apoyo'          => 'required|string|max:100',
             'fecha_entrega'       => 'required|date',
             'nombre_representante'=> 'required|string|max:100',
-            'monto'               => 'nullable|numeric|min:0',
-            'cantidad'            => 'nullable|integer|min:0',
-            'num_beneficiarios'   => 'nullable|integer|min:1',
+            'monto'               => 'required|numeric|min:0',
+            'cantidad'            => 'required|integer|min:0',
+            'num_beneficiarios'   => 'required|integer|min:1',
             'estatus'             => 'required|in:entregado,pendiente,cancelado,aprobado',
         ]);
 

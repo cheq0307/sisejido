@@ -8,98 +8,132 @@ use Illuminate\Http\Request;
 
 class ApoyoSocialController extends Controller
 {
+    // ─── Reglas de validación reutilizables ───────────────────────────────────
+    private function rules(): array
+    {
+        return [
+            'idEjidatario'         => 'required|exists:ejidatarios,idEjidatario',
+            'tipo_apoyo'           => 'required|string|max:100',
+            'descripcion'          => 'nullable|string|max:500',
+            'fecha_entrega'        => 'required|date_format:Y-m-d|before_or_equal:2100-12-31',
+            'monto'                => 'required|numeric|min:0',
+            'cantidad'             => 'required|integer|min:0',
+            'unidad_medida'        => 'nullable|string|max:50',
+            'ciclo'                => 'nullable|string|max:20',
+            'estatus'              => 'required|in:entregado,pendiente,cancelado,aprobado',
+            'dependencia'          => 'nullable|string|max:100',
+            'nombre_representante' => 'required|string|max:100',
+            'num_beneficiarios'    => 'required|integer|min:1',
+            'observaciones'        => 'nullable|string|max:1000',
+        ];
+    }
+
+    // ─── Mensajes en español ──────────────────────────────────────────────────
+    private function messages(): array
+    {
+        return [
+            'idEjidatario.required'         => 'Selecciona un ejidatario.',
+            'idEjidatario.exists'           => 'El ejidatario seleccionado no existe.',
+            'tipo_apoyo.required'           => 'El tipo de apoyo es obligatorio.',
+            'fecha_entrega.required'        => 'La fecha de entrega es obligatoria.',
+            'fecha_entrega.date_format'     => 'La fecha debe tener el formato DD/MM/AAAA.',
+            'fecha_entrega.before_or_equal' => 'La fecha no puede ser posterior al año 2100.',
+            'monto.required'                => 'El monto es obligatorio.',
+            'monto.numeric'                 => 'El monto debe ser un número.',
+            'cantidad.required'             => 'La cantidad es obligatoria.',
+            'cantidad.integer'              => 'La cantidad debe ser un número entero.',
+            'estatus.required'              => 'El estatus es obligatorio.',
+            'estatus.in'                    => 'El estatus seleccionado no es válido.',
+            'nombre_representante.required' => 'El nombre del representante es obligatorio.',
+            'num_beneficiarios.required'    => 'El número de beneficiarios es obligatorio.',
+            'num_beneficiarios.min'         => 'Debe haber al menos 1 beneficiario.',
+        ];
+    }
+
+    // ─── Index ────────────────────────────────────────────────────────────────
     public function index()
     {
-        $apoyos = ApoyoSocial::with('ejidatario')->orderBy('fecha_entrega', 'desc')->get();
+        $apoyos = ApoyoSocial::with('ejidatario')
+            ->orderBy('fecha_entrega', 'desc')
+            ->get();
+
         return view('ListViews.listadoApoyos', compact('apoyos'));
     }
 
+    // ─── Create ───────────────────────────────────────────────────────────────
     public function create()
     {
-        $ejidatarios = Ejidatario::where('idEstatus', 1)->orderBy('apellidoPaterno')->get();
+        $ejidatarios = Ejidatario::where('idEstatus', 1)
+            ->orderBy('apellidoPaterno')
+            ->get();
+
         return view('RegisterViews.nuevoApoyo', compact('ejidatarios'));
     }
 
+    // ─── Store ────────────────────────────────────────────────────────────────
     public function store(Request $request)
     {
-        $request->validate([
-            'idEjidatario'        => 'required|exists:ejidatarios,idEjidatario',
-            'tipo_apoyo'          => 'required|string|max:100',
-    'fecha_entrega' => [
-        'bail',
-        'required',
-        'date_format:Y-m-d',
-        'regex:/^(19|20)\d{2}-\d{2}-\d{2}$/',
-    ],
-            'nombre_representante'=> 'required|string|max:100',
-            'monto'               => 'required|numeric|min:0',
-            'cantidad'            => 'required|integer|min:0',
-            'num_beneficiarios'   => 'required|integer|min:1',
-            'estatus'             => 'required|in:entregado,pendiente,cancelado,aprobado',
-        ]);
+        $validated = $request->validate($this->rules(), $this->messages());
 
-        ApoyoSocial::create($request->all());
+        ApoyoSocial::create($validated);
 
         return redirect()->route('apoyos.index')
-                         ->with('success', 'Apoyo registrado correctamente.');
+            ->with('success', 'Apoyo registrado correctamente.');
     }
 
+    // ─── Edit ─────────────────────────────────────────────────────────────────
     public function edit($id)
     {
-        $apoyo = ApoyoSocial::findOrFail($id);
-        $ejidatarios = Ejidatario::where('idEstatus', 1)->orderBy('apellidoPaterno')->get();
+        $apoyo       = ApoyoSocial::findOrFail($id);
+        $ejidatarios = Ejidatario::where('idEstatus', 1)
+            ->orderBy('apellidoPaterno')
+            ->get();
+
         return view('EditViews.editarApoyo', compact('apoyo', 'ejidatarios'));
     }
 
+    // ─── Update ───────────────────────────────────────────────────────────────
     public function update(Request $request, $id)
     {
         $apoyo = ApoyoSocial::findOrFail($id);
 
-        $request->validate([
-            'idEjidatario'        => 'required|exists:ejidatarios,idEjidatario',
-            'tipo_apoyo'          => 'required|string|max:100',
-                'fecha_entrega' => [
-        'required',
-        'date_format:Y-m-d',
-        'before_or_equal:2100-12-31',
-    ],
-            'nombre_representante'=> 'required|string|max:100',
-            'monto'               => 'required|numeric|min:0',
-            'cantidad'            => 'required|integer|min:0',
-            'num_beneficiarios'   => 'required|integer|min:1',
-            'estatus'             => 'required|in:entregado,pendiente,cancelado,aprobado',
-        ]);
+        $validated = $request->validate($this->rules(), $this->messages());
 
-        $apoyo->update($request->all());
+        $apoyo->update($validated);
 
         return redirect()->route('apoyos.index')
-                         ->with('success', 'Apoyo actualizado correctamente.');
+            ->with('success', 'Apoyo actualizado correctamente.');
     }
+
+    // ─── Reporte ──────────────────────────────────────────────────────────────
     public function reporte(Request $request)
-{
-    $query = ApoyoSocial::with('ejidatario');
+    {
+        $query = ApoyoSocial::with('ejidatario');
 
-    if ($request->estatus) {
-        $query->where('estatus', $request->estatus);
-    }
-    if ($request->tipo_apoyo) {
-        $query->where('tipo_apoyo', 'like', '%' . $request->tipo_apoyo . '%');
-    }
-    if ($request->fecha_desde) {
-        $query->where('fecha_entrega', '>=', $request->fecha_desde);
-    }
-    if ($request->fecha_hasta) {
-        $query->where('fecha_entrega', '<=', $request->fecha_hasta);
+        if ($request->filled('estatus')) {
+            $query->where('estatus', $request->estatus);
+        }
+        if ($request->filled('tipo_apoyo')) {
+            $query->where('tipo_apoyo', 'like', '%' . $request->tipo_apoyo . '%');
+        }
+        if ($request->filled('fecha_desde')) {
+            $query->where('fecha_entrega', '>=', $request->fecha_desde);
+        }
+        if ($request->filled('fecha_hasta')) {
+            $query->where('fecha_entrega', '<=', $request->fecha_hasta);
+        }
+
+        $apoyos = $query->orderBy('fecha_entrega', 'desc')->get();
+
+        return view('ReportViews.reporteApoyos', compact('apoyos'));
     }
 
-    $apoyos = $query->orderBy('fecha_entrega', 'desc')->get();
-    return view('ReportViews.reporteApoyos', compact('apoyos'));
-}
-
+    // ─── Destroy ──────────────────────────────────────────────────────────────
     public function destroy($id)
     {
         ApoyoSocial::findOrFail($id)->delete();
+
         return redirect()->route('apoyos.index')
-                         ->with('success', 'Apoyo eliminado.');
+            ->with('success', 'Apoyo eliminado.');
     }
 }

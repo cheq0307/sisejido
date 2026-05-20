@@ -30,7 +30,6 @@
 
         <div class="card-body">
 
-            {{-- Errores de validación --}}
             @if ($errors->any())
                 <div class="alert alert-danger alert-dismissible fade show">
                     <strong><i class="fas fa-exclamation-triangle me-1"></i>Corrige los siguientes errores:</strong>
@@ -42,6 +41,10 @@
                     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
             @endif
+
+            <p class="text-muted small mb-3">
+                Los campos marcados con <span class="text-danger fw-bold">*</span> son obligatorios.
+            </p>
 
             <form action="{{ route('apoyos.store') }}" method="POST">
                 @csrf
@@ -83,36 +86,37 @@
                         @enderror
                     </div>
 
-                    {{-- ── Descripción (opcional) ── --}}
+                    {{-- ── Descripción (obligatorio) ── --}}
                     <div class="col-12">
                         <label for="descripcion" class="form-label fw-semibold">
-                            Descripción <small class="text-muted fw-normal">(opcional)</small>
+                            Descripción <span class="text-danger">*</span>
                         </label>
                         <textarea name="descripcion" id="descripcion" rows="2" maxlength="500"
                                   class="form-control @error('descripcion') is-invalid @enderror"
-                                  placeholder="Detalle del apoyo...">{{ old('descripcion') }}</textarea>
+                                  placeholder="Detalle del apoyo..." required>{{ old('descripcion') }}</textarea>
                         @error('descripcion')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
 
-                    {{-- ── Monto ── --}}
+                    {{-- ── Monto (opcional: apoyo puede ser en especie) ── --}}
                     <div class="col-md-4">
                         <label for="monto" class="form-label fw-semibold">
-                            Monto ($) <span class="text-danger">*</span>
+                            Monto ($)
+                            <small class="text-muted fw-normal">(opcional — dejar vacío si es en especie)</small>
                         </label>
                         <div class="input-group">
                             <span class="input-group-text">$</span>
                             <input type="number" name="monto" id="monto" min="0" step="0.01"
                                    class="form-control @error('monto') is-invalid @enderror"
-                                   value="{{ old('monto', 0) }}" required>
+                                   value="{{ old('monto') }}" placeholder="0.00">
                             @error('monto')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
                     </div>
 
-                    {{-- ── Cantidad ── --}}
+                    {{-- ── Cantidad (obligatorio) ── --}}
                     <div class="col-md-4">
                         <label for="cantidad" class="form-label fw-semibold">
                             Cantidad <span class="text-danger">*</span>
@@ -125,26 +129,25 @@
                         @enderror
                     </div>
 
-                    {{-- ── Unidad de Medida (opcional) ── --}}
+                    {{-- ── Unidad de Medida (obligatorio) ── --}}
                     <div class="col-md-4">
                         <label for="unidad_medida" class="form-label fw-semibold">
-                            Unidad de Medida <small class="text-muted fw-normal">(opcional)</small>
+                            Unidad de Medida <span class="text-danger">*</span>
                         </label>
                         <input type="text" name="unidad_medida" id="unidad_medida" maxlength="50"
                                class="form-control @error('unidad_medida') is-invalid @enderror"
-                               value="{{ old('unidad_medida') }}" placeholder="pzas, kg, lt...">
+                               value="{{ old('unidad_medida') }}" placeholder="pzas, kg, lt..." required>
                         @error('unidad_medida')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
 
-                    {{-- ── Fecha de Entrega ──────────────────────────────────────────────────
-                         type="date" siempre envía Y-m-d al servidor → resuelve el error de validación
-                    ─────────────────────────────────────────────────────────────────────────── --}}
+                    {{-- ── Fecha de Entrega ── --}}
                     <div class="col-md-4">
                         <label for="fecha_entrega" class="form-label fw-semibold">
                             Fecha de Entrega <span class="text-danger">*</span>
                         </label>
+                        {{-- type="date" siempre envía Y-m-d → sin errores de formato --}}
                         <input type="date" name="fecha_entrega" id="fecha_entrega"
                                class="form-control @error('fecha_entrega') is-invalid @enderror"
                                value="{{ old('fecha_entrega') }}"
@@ -192,15 +195,15 @@
                         @enderror
                     </div>
 
-                    {{-- ── Dependencia / Institución (opcional) ── --}}
+                    {{-- ── Dependencia / Institución (obligatorio) ── --}}
                     <div class="col-md-6">
                         <label for="dependencia" class="form-label fw-semibold">
-                            Dependencia / Institución <small class="text-muted fw-normal">(opcional)</small>
+                            Dependencia / Institución <span class="text-danger">*</span>
                         </label>
                         <input type="text" name="dependencia" id="dependencia" maxlength="100"
                                class="form-control @error('dependencia') is-invalid @enderror"
                                value="{{ old('dependencia') }}"
-                               placeholder="Ej: SADER, SEDESOL, BIENESTAR...">
+                               placeholder="Ej: SADER, SEDESOL, BIENESTAR..." required>
                         @error('dependencia')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -233,14 +236,14 @@
                         @enderror
                     </div>
 
-                    {{-- ── Observaciones (opcional) ── --}}
+                    {{-- ── Observaciones (obligatorio) ── --}}
                     <div class="col-12">
                         <label for="observaciones" class="form-label fw-semibold">
-                            Observaciones <small class="text-muted fw-normal">(opcional)</small>
+                            Observaciones <span class="text-danger">*</span>
                         </label>
                         <textarea name="observaciones" id="observaciones" rows="3" maxlength="1000"
                                   class="form-control @error('observaciones') is-invalid @enderror"
-                                  placeholder="Notas adicionales...">{{ old('observaciones') }}</textarea>
+                                  placeholder="Notas adicionales..." required>{{ old('observaciones') }}</textarea>
                         @error('observaciones')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror

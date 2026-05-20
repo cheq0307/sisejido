@@ -87,14 +87,14 @@
                         @enderror
                     </div>
 
-                    {{-- Descripción --}}
+                    {{-- Concepto (antes Descripción) --}}
                     <div class="col-12">
                         <label for="descripcion" class="form-label fw-semibold">
-                            Descripción <span class="text-danger">*</span>
+                            Concepto <span class="text-danger">*</span>
                         </label>
                         <textarea name="descripcion" id="descripcion" rows="2" maxlength="500"
                                   class="form-control @error('descripcion') is-invalid @enderror"
-                                  placeholder="Detalle del apoyo..." required>{{ old('descripcion', $apoyo->descripcion) }}</textarea>
+                                  placeholder="Ej: Bultos de fertilizante para siembra de maíz..." required>{{ old('descripcion', $apoyo->descripcion) }}</textarea>
                         @error('descripcion')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -196,7 +196,7 @@
                         @enderror
                     </div>
 
-                    {{-- ── Sección Dependencia ── --}}
+                    {{-- Sección Dependencia --}}
                     <div class="col-12">
                         <hr class="my-1">
                         <p class="fw-semibold text-muted small mb-0">Información de la Dependencia</p>
@@ -231,7 +231,7 @@
                         @enderror
                     </div>
 
-                    {{-- ── Sección Comisaría ── --}}
+                    {{-- Sección Comisaría --}}
                     <div class="col-12">
                         <hr class="my-1">
                         <p class="fw-semibold text-muted small mb-0">Información de la Comisaría</p>
@@ -277,7 +277,7 @@
                         @enderror
                     </div>
 
-                </div>{{-- /row --}}
+                </div>
 
                 <hr class="my-4">
 

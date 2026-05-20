@@ -86,14 +86,14 @@
                         @enderror
                     </div>
 
-                    {{-- Descripción --}}
+                    {{-- Concepto (antes Descripción) --}}
                     <div class="col-12">
                         <label for="descripcion" class="form-label fw-semibold">
-                            Descripción <span class="text-danger">*</span>
+                            Concepto <span class="text-danger">*</span>
                         </label>
                         <textarea name="descripcion" id="descripcion" rows="2" maxlength="500"
                                   class="form-control @error('descripcion') is-invalid @enderror"
-                                  placeholder="Detalle del apoyo..." required>{{ old('descripcion') }}</textarea>
+                                  placeholder="Ej: Bultos de fertilizante para siembra de maíz..." required>{{ old('descripcion') }}</textarea>
                         @error('descripcion')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -192,8 +192,11 @@
                         @enderror
                     </div>
 
-                    {{-- ── Sección: Dependencia ── --}}
-                    <div class="col-12"><hr class="my-1"><p class="fw-semibold text-muted small mb-0">Información de la Dependencia</p></div>
+                    {{-- Sección Dependencia --}}
+                    <div class="col-12">
+                        <hr class="my-1">
+                        <p class="fw-semibold text-muted small mb-0">Información de la Dependencia</p>
+                    </div>
 
                     {{-- Dependencia --}}
                     <div class="col-md-6">
@@ -209,7 +212,7 @@
                         @enderror
                     </div>
 
-                    {{-- Representante de la Dependencia (nuevo) --}}
+                    {{-- Representante de la Dependencia --}}
                     <div class="col-md-6">
                         <label for="representante_dependencia" class="form-label fw-semibold">
                             Representante de la Dependencia <span class="text-danger">*</span>
@@ -224,8 +227,11 @@
                         @enderror
                     </div>
 
-                    {{-- ── Sección: Comisaría ── --}}
-                    <div class="col-12"><hr class="my-1"><p class="fw-semibold text-muted small mb-0">Información de la Comisaría</p></div>
+                    {{-- Sección Comisaría --}}
+                    <div class="col-12">
+                        <hr class="my-1">
+                        <p class="fw-semibold text-muted small mb-0">Información de la Comisaría</p>
+                    </div>
 
                     {{-- Representante de la Comisaría --}}
                     <div class="col-md-6">
@@ -267,7 +273,7 @@
                         @enderror
                     </div>
 
-                </div>{{-- /row --}}
+                </div>
 
                 <hr class="my-4">
 

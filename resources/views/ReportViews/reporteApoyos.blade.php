@@ -28,12 +28,10 @@
 <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
 <div class="container-fluid">
 <div class="row">
-<div class="col-md-10 p-4">
+<div class="col-md-12 p-4">
 
     <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
-        <h1 class="h2 text-ejidal">
-            <i class="fas fa-hand-holding-heart me-2"></i>Reporte de Apoyos Sociales
-        </h1>
+        <h1 class="h2 text-ejidal">Reporte de Apoyos Sociales</h1>
         <button class="btn btn-ejidal no-print" onclick="imprimirReporte()">
             <i class="fas fa-file-pdf me-1"></i> Generar PDF
         </button>

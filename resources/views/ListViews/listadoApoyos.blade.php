@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nuevo Apoyo Social</title>
+    <title>Apoyos Sociales</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{{ asset('css/estiloPrincipal.css') }}">
@@ -24,6 +24,7 @@
                 <i class="fas fa-plus me-1"></i> Nuevo Apoyo
             </a>
         </div>
+
         <div class="card-body">
 
             @if(session('success'))
@@ -33,6 +34,77 @@
                 </div>
             @endif
 
+            {{-- ── Buscador ── --}}
+            <div class="card bg-light border-0 mb-3">
+                <div class="card-body pb-2">
+                    <form method="GET" action="{{ route('apoyos.index') }}" id="formBusqueda">
+                        <div class="row g-2 align-items-end">
+
+                            <div class="col-md-3">
+                                <label class="form-label small fw-semibold mb-1">Concepto / Tipo</label>
+                                <input type="text" name="concepto" class="form-control form-control-sm"
+                                       placeholder="Ej: procampo, semilla..."
+                                       value="{{ request('concepto') }}">
+                            </div>
+
+                            <div class="col-md-3">
+                                <label class="form-label small fw-semibold mb-1">Ejidatario beneficiado</label>
+                                <input type="text" name="beneficiario" class="form-control form-control-sm"
+                                       placeholder="Nombre o apellido..."
+                                       value="{{ request('beneficiario') }}">
+                            </div>
+
+                            <div class="col-md-3">
+                                <label class="form-label small fw-semibold mb-1">Representante</label>
+                                <input type="text" name="representante" class="form-control form-control-sm"
+                                       placeholder="Nombre del representante..."
+                                       value="{{ request('representante') }}">
+                            </div>
+
+                            <div class="col-md-3">
+                                <label class="form-label small fw-semibold mb-1">Dependencia</label>
+                                <input type="text" name="dependencia" class="form-control form-control-sm"
+                                       placeholder="SADER, SEDESOL..."
+                                       value="{{ request('dependencia') }}">
+                            </div>
+
+                            <div class="col-md-3">
+                                <label class="form-label small fw-semibold mb-1">Fecha desde</label>
+                                <input type="date" name="fecha_desde" class="form-control form-control-sm"
+                                       value="{{ request('fecha_desde') }}">
+                            </div>
+
+                            <div class="col-md-3">
+                                <label class="form-label small fw-semibold mb-1">Fecha hasta</label>
+                                <input type="date" name="fecha_hasta" class="form-control form-control-sm"
+                                       value="{{ request('fecha_hasta') }}">
+                            </div>
+
+                            <div class="col-md-3">
+                                <label class="form-label small fw-semibold mb-1">Estatus</label>
+                                <select name="estatus" class="form-select form-select-sm">
+                                    <option value="">-- Todos --</option>
+                                    @foreach(['entregado'=>'Entregado','pendiente'=>'Pendiente','aprobado'=>'Aprobado','cancelado'=>'Cancelado'] as $v=>$l)
+                                        <option value="{{ $v }}" {{ request('estatus')===$v ? 'selected':'' }}>{{ $l }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div class="col-md-3 d-flex gap-2">
+                                <button type="submit" class="btn btn-ejidal btn-sm w-100">
+                                    <i class="fas fa-search me-1"></i>Buscar
+                                </button>
+                                <a href="{{ route('apoyos.index') }}" class="btn btn-outline-secondary btn-sm w-100">
+                                    <i class="fas fa-times me-1"></i>Limpiar
+                                </a>
+                            </div>
+
+                        </div>
+                    </form>
+                </div>
+            </div>
+            {{-- ── /Buscador ── --}}
+
             <div class="table-responsive">
                 <table class="table table-hover table-bordered align-middle">
                     <thead class="table-dark">
@@ -40,6 +112,7 @@
                             <th>#</th>
                             <th>Ejidatario</th>
                             <th>Tipo de Apoyo</th>
+                            <th>Concepto / Descripción</th>
                             <th>Dependencia</th>
                             <th>Monto</th>
                             <th>Cantidad</th>
@@ -64,17 +137,20 @@
                                 @endif
                             </td>
                             <td>{{ $a->tipo_apoyo }}</td>
+                            <td>{{ $a->descripcion ?? '—' }}</td>
                             <td>{{ $a->dependencia ?? '—' }}</td>
                             <td>
                                 @if($a->monto > 0)
                                     ${{ number_format($a->monto, 2) }}
-                                @else —
+                                @else
+                                    <span class="text-muted">—</span>
                                 @endif
                             </td>
                             <td>
                                 @if($a->cantidad > 0)
                                     {{ $a->cantidad }} {{ $a->unidad_medida }}
-                                @else —
+                                @else
+                                    <span class="text-muted">—</span>
                                 @endif
                             </td>
                             <td>{{ \Carbon\Carbon::parse($a->fecha_entrega)->format('d/m/Y') }}</td>
@@ -109,7 +185,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="11" class="text-center text-muted py-4">
+                            <td colspan="12" class="text-center text-muted py-4">
                                 No hay apoyos registrados.
                             </td>
                         </tr>
@@ -117,10 +193,19 @@
                     </tbody>
                 </table>
             </div>
+
+            @if($apoyos->isEmpty())
+            @else
+                <p class="text-muted small text-end mb-0">
+                    {{ $apoyos->count() }} registro(s) encontrado(s)
+                </p>
+            @endif
+
         </div>
     </div>
+</main>
 </div>
-
+</div>
 
 @include('IncludeViews.pie')
 

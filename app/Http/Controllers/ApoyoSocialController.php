@@ -15,15 +15,15 @@ class ApoyoSocialController extends Controller
             'tipo_apoyo'           => 'required|string|max:100',
             'descripcion'          => 'required|string|max:500',
             'fecha_entrega'        => 'required|date_format:Y-m-d|before_or_equal:2100-12-31',
-            'monto'                => 'nullable|numeric|min:0',   // opcional: puede ser en especie
+            'monto'                => 'nullable|numeric|min:0',
             'cantidad'             => 'required|integer|min:0',
             'unidad_medida'        => 'required|string|max:50',
-            'ciclo'                => 'nullable|string|max:20',   // opcional
+            'ciclo'                => 'nullable|string|max:20',
             'estatus'              => 'required|in:entregado,pendiente,cancelado,aprobado',
             'dependencia'          => 'required|string|max:100',
             'nombre_representante' => 'required|string|max:100',
             'num_beneficiarios'    => 'required|integer|min:1',
-            'observaciones'        => 'nullable|string|max:1000', // opcional
+            'observaciones'        => 'nullable|string|max:1000',
         ];
     }
 
@@ -51,15 +51,57 @@ class ApoyoSocialController extends Controller
         ];
     }
 
-    public function index()
+    // ── Index con filtros ─────────────────────────────────────────────────────
+    public function index(Request $request)
     {
-        $apoyos = ApoyoSocial::with('ejidatario')
-            ->orderBy('fecha_entrega', 'desc')
-            ->get();
+        $query = ApoyoSocial::with('ejidatario');
+
+        // Concepto / Tipo de apoyo o descripción
+        if ($request->filled('concepto')) {
+            $query->where(function ($q) use ($request) {
+                $q->where('tipo_apoyo',  'like', '%' . $request->concepto . '%')
+                  ->orWhere('descripcion', 'like', '%' . $request->concepto . '%');
+            });
+        }
+
+        // Ejidatario beneficiado (busca en nombre, apellido paterno o materno)
+        if ($request->filled('beneficiario')) {
+            $query->whereHas('ejidatario', function ($q) use ($request) {
+                $q->where('nombre',          'like', '%' . $request->beneficiario . '%')
+                  ->orWhere('apellidoPaterno', 'like', '%' . $request->beneficiario . '%')
+                  ->orWhere('apellidoMaterno', 'like', '%' . $request->beneficiario . '%');
+            });
+        }
+
+        // Representante
+        if ($request->filled('representante')) {
+            $query->where('nombre_representante', 'like', '%' . $request->representante . '%');
+        }
+
+        // Dependencia
+        if ($request->filled('dependencia')) {
+            $query->where('dependencia', 'like', '%' . $request->dependencia . '%');
+        }
+
+        // Rango de fechas
+        if ($request->filled('fecha_desde')) {
+            $query->where('fecha_entrega', '>=', $request->fecha_desde);
+        }
+        if ($request->filled('fecha_hasta')) {
+            $query->where('fecha_entrega', '<=', $request->fecha_hasta);
+        }
+
+        // Estatus
+        if ($request->filled('estatus')) {
+            $query->where('estatus', $request->estatus);
+        }
+
+        $apoyos = $query->orderBy('fecha_entrega', 'desc')->get();
 
         return view('ListViews.listadoApoyos', compact('apoyos'));
     }
 
+    // ── Create ────────────────────────────────────────────────────────────────
     public function create()
     {
         $ejidatarios = Ejidatario::where('idEstatus', 1)
@@ -69,19 +111,19 @@ class ApoyoSocialController extends Controller
         return view('RegisterViews.nuevoApoyo', compact('ejidatarios'));
     }
 
-public function store(Request $request)
-{
-    $validated = $request->validate($this->rules(), $this->messages());
+    // ── Store ─────────────────────────────────────────────────────────────────
+    public function store(Request $request)
+    {
+        $validated = $request->validate($this->rules(), $this->messages());
+        $validated['monto'] = $validated['monto'] ?? 0;
 
-    // Evita NULL en columna NOT NULL cuando el apoyo es en especie
-    $validated['monto'] = $validated['monto'] ?? 0;
+        ApoyoSocial::create($validated);
 
-    ApoyoSocial::create($validated);
+        return redirect()->route('apoyos.index')
+            ->with('success', 'Apoyo registrado correctamente.');
+    }
 
-    return redirect()->route('apoyos.index')
-        ->with('success', 'Apoyo registrado correctamente.');
-}
-
+    // ── Edit ──────────────────────────────────────────────────────────────────
     public function edit($id)
     {
         $apoyo       = ApoyoSocial::findOrFail($id);
@@ -92,16 +134,20 @@ public function store(Request $request)
         return view('EditViews.editarApoyo', compact('apoyo', 'ejidatarios'));
     }
 
+    // ── Update ────────────────────────────────────────────────────────────────
     public function update(Request $request, $id)
     {
         $apoyo     = ApoyoSocial::findOrFail($id);
         $validated = $request->validate($this->rules(), $this->messages());
+        $validated['monto'] = $validated['monto'] ?? 0;
+
         $apoyo->update($validated);
 
         return redirect()->route('apoyos.index')
             ->with('success', 'Apoyo actualizado correctamente.');
     }
 
+    // ── Reporte ───────────────────────────────────────────────────────────────
     public function reporte(Request $request)
     {
         $query = ApoyoSocial::with('ejidatario');
@@ -116,6 +162,7 @@ public function store(Request $request)
         return view('ReportViews.reporteApoyos', compact('apoyos'));
     }
 
+    // ── Destroy ───────────────────────────────────────────────────────────────
     public function destroy($id)
     {
         ApoyoSocial::findOrFail($id)->delete();

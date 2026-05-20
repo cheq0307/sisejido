@@ -86,7 +86,7 @@
                         @enderror
                     </div>
 
-                    {{-- Descripción — obligatorio --}}
+                    {{-- Descripción --}}
                     <div class="col-12">
                         <label for="descripcion" class="form-label fw-semibold">
                             Descripción <span class="text-danger">*</span>
@@ -99,23 +99,23 @@
                         @enderror
                     </div>
 
-                    {{-- Monto — opcional (puede ser en especie) --}}
+                    {{-- Monto --}}
                     <div class="col-md-4">
                         <label for="monto" class="form-label fw-semibold">
-                            Monto ($) <small class="text-muted fw-normal">(opcional — dejar vacío si es en especie)</small>
+                            Monto ($) <small class="text-muted fw-normal">(opcional — 0 si es en especie)</small>
                         </label>
                         <div class="input-group">
                             <span class="input-group-text">$</span>
                             <input type="number" name="monto" id="monto" min="0" step="0.01"
                                    class="form-control @error('monto') is-invalid @enderror"
-                                   value="{{ old('monto') }}" placeholder="0.00">
+                                   value="{{ old('monto', '0') }}" placeholder="0.00">
                             @error('monto')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
                     </div>
 
-                    {{-- Cantidad — obligatorio --}}
+                    {{-- Cantidad --}}
                     <div class="col-md-4">
                         <label for="cantidad" class="form-label fw-semibold">
                             Cantidad <span class="text-danger">*</span>
@@ -128,7 +128,7 @@
                         @enderror
                     </div>
 
-                    {{-- Unidad de Medida — obligatorio --}}
+                    {{-- Unidad de Medida --}}
                     <div class="col-md-4">
                         <label for="unidad_medida" class="form-label fw-semibold">
                             Unidad de Medida <span class="text-danger">*</span>
@@ -141,7 +141,7 @@
                         @enderror
                     </div>
 
-                    {{-- Fecha de Entrega — obligatorio --}}
+                    {{-- Fecha de Entrega --}}
                     <div class="col-md-4">
                         <label for="fecha_entrega" class="form-label fw-semibold">
                             Fecha de Entrega <span class="text-danger">*</span>
@@ -154,7 +154,7 @@
                         @enderror
                     </div>
 
-                    {{-- Ciclo — opcional --}}
+                    {{-- Ciclo --}}
                     <div class="col-md-4">
                         <label for="ciclo" class="form-label fw-semibold">
                             Ciclo <small class="text-muted fw-normal">(opcional)</small>
@@ -167,7 +167,7 @@
                         @enderror
                     </div>
 
-                    {{-- Estatus — obligatorio --}}
+                    {{-- Estatus --}}
                     <div class="col-md-4">
                         <label for="estatus" class="form-label fw-semibold">
                             Estatus <span class="text-danger">*</span>
@@ -192,7 +192,10 @@
                         @enderror
                     </div>
 
-                    {{-- Dependencia — obligatorio --}}
+                    {{-- ── Sección: Dependencia ── --}}
+                    <div class="col-12"><hr class="my-1"><p class="fw-semibold text-muted small mb-0">Información de la Dependencia</p></div>
+
+                    {{-- Dependencia --}}
                     <div class="col-md-6">
                         <label for="dependencia" class="form-label fw-semibold">
                             Dependencia / Institución <span class="text-danger">*</span>
@@ -206,10 +209,28 @@
                         @enderror
                     </div>
 
-                    {{-- Nombre del Representante — obligatorio --}}
+                    {{-- Representante de la Dependencia (nuevo) --}}
+                    <div class="col-md-6">
+                        <label for="representante_dependencia" class="form-label fw-semibold">
+                            Representante de la Dependencia <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" name="representante_dependencia" id="representante_dependencia"
+                               maxlength="100"
+                               class="form-control @error('representante_dependencia') is-invalid @enderror"
+                               value="{{ old('representante_dependencia') }}"
+                               placeholder="Nombre del funcionario que entrega el apoyo" required>
+                        @error('representante_dependencia')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    {{-- ── Sección: Comisaría ── --}}
+                    <div class="col-12"><hr class="my-1"><p class="fw-semibold text-muted small mb-0">Información de la Comisaría</p></div>
+
+                    {{-- Representante de la Comisaría --}}
                     <div class="col-md-6">
                         <label for="nombre_representante" class="form-label fw-semibold">
-                            Nombre del Representante <span class="text-danger">*</span>
+                            Representante de la Comisaría <span class="text-danger">*</span>
                         </label>
                         <input type="text" name="nombre_representante" id="nombre_representante"
                                maxlength="100"
@@ -220,8 +241,8 @@
                         @enderror
                     </div>
 
-                    {{-- Núm. Beneficiarios — obligatorio --}}
-                    <div class="col-md-4">
+                    {{-- Núm. Beneficiarios --}}
+                    <div class="col-md-6">
                         <label for="num_beneficiarios" class="form-label fw-semibold">
                             Núm. Beneficiarios <span class="text-danger">*</span>
                         </label>
@@ -233,7 +254,7 @@
                         @enderror
                     </div>
 
-                    {{-- Observaciones — opcional --}}
+                    {{-- Observaciones --}}
                     <div class="col-12">
                         <label for="observaciones" class="form-label fw-semibold">
                             Observaciones <small class="text-muted fw-normal">(opcional)</small>

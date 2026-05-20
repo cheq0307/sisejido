@@ -11,43 +11,45 @@ class ApoyoSocialController extends Controller
     private function rules(): array
     {
         return [
-            'idEjidatario'         => 'required|exists:ejidatarios,idEjidatario',
-            'tipo_apoyo'           => 'required|string|max:100',
-            'descripcion'          => 'required|string|max:500',
-            'fecha_entrega'        => 'required|date_format:Y-m-d|before_or_equal:2100-12-31',
-            'monto'                => 'nullable|numeric|min:0',
-            'cantidad'             => 'required|integer|min:0',
-            'unidad_medida'        => 'required|string|max:50',
-            'ciclo'                => 'nullable|string|max:20',
-            'estatus'              => 'required|in:entregado,pendiente,cancelado,aprobado',
-            'dependencia'          => 'required|string|max:100',
-            'nombre_representante' => 'required|string|max:100',
-            'num_beneficiarios'    => 'required|integer|min:1',
-            'observaciones'        => 'nullable|string|max:1000',
+            'idEjidatario'               => 'required|exists:ejidatarios,idEjidatario',
+            'tipo_apoyo'                 => 'required|string|max:100',
+            'descripcion'                => 'required|string|max:500',
+            'fecha_entrega'              => 'required|date_format:Y-m-d|before_or_equal:2100-12-31',
+            'monto'                      => 'nullable|numeric|min:0',
+            'cantidad'                   => 'required|integer|min:0',
+            'unidad_medida'              => 'required|string|max:50',
+            'ciclo'                      => 'nullable|string|max:20',
+            'estatus'                    => 'required|in:entregado,pendiente,cancelado,aprobado',
+            'dependencia'                => 'required|string|max:100',
+            'representante_dependencia'  => 'required|string|max:100',  // nuevo
+            'nombre_representante'       => 'required|string|max:100',
+            'num_beneficiarios'          => 'required|integer|min:1',
+            'observaciones'              => 'nullable|string|max:1000',
         ];
     }
 
     private function messages(): array
     {
         return [
-            'idEjidatario.required'         => 'Selecciona un ejidatario.',
-            'idEjidatario.exists'           => 'El ejidatario seleccionado no existe.',
-            'tipo_apoyo.required'           => 'El tipo de apoyo es obligatorio.',
-            'descripcion.required'          => 'La descripción es obligatoria.',
-            'fecha_entrega.required'        => 'La fecha de entrega es obligatoria.',
-            'fecha_entrega.date_format'     => 'La fecha debe tener el formato DD/MM/AAAA.',
-            'fecha_entrega.before_or_equal' => 'La fecha no puede ser posterior al año 2100.',
-            'monto.numeric'                 => 'El monto debe ser un número.',
-            'monto.min'                     => 'El monto no puede ser negativo.',
-            'cantidad.required'             => 'La cantidad es obligatoria.',
-            'cantidad.integer'              => 'La cantidad debe ser un número entero.',
-            'unidad_medida.required'        => 'La unidad de medida es obligatoria.',
-            'estatus.required'              => 'El estatus es obligatorio.',
-            'estatus.in'                    => 'El estatus seleccionado no es válido.',
-            'dependencia.required'          => 'La dependencia o institución es obligatoria.',
-            'nombre_representante.required' => 'El nombre del representante es obligatorio.',
-            'num_beneficiarios.required'    => 'El número de beneficiarios es obligatorio.',
-            'num_beneficiarios.min'         => 'Debe haber al menos 1 beneficiario.',
+            'idEjidatario.required'              => 'Selecciona un ejidatario.',
+            'idEjidatario.exists'                => 'El ejidatario seleccionado no existe.',
+            'tipo_apoyo.required'                => 'El tipo de apoyo es obligatorio.',
+            'descripcion.required'               => 'La descripción es obligatoria.',
+            'fecha_entrega.required'             => 'La fecha de entrega es obligatoria.',
+            'fecha_entrega.date_format'          => 'La fecha debe tener el formato DD/MM/AAAA.',
+            'fecha_entrega.before_or_equal'      => 'La fecha no puede ser posterior al año 2100.',
+            'monto.numeric'                      => 'El monto debe ser un número.',
+            'monto.min'                          => 'El monto no puede ser negativo.',
+            'cantidad.required'                  => 'La cantidad es obligatoria.',
+            'cantidad.integer'                   => 'La cantidad debe ser un número entero.',
+            'unidad_medida.required'             => 'La unidad de medida es obligatoria.',
+            'estatus.required'                   => 'El estatus es obligatorio.',
+            'estatus.in'                         => 'El estatus seleccionado no es válido.',
+            'dependencia.required'               => 'La dependencia o institución es obligatoria.',
+            'representante_dependencia.required' => 'El nombre del representante de la dependencia es obligatorio.',
+            'nombre_representante.required'      => 'El nombre del representante de la comisaría es obligatorio.',
+            'num_beneficiarios.required'         => 'El número de beneficiarios es obligatorio.',
+            'num_beneficiarios.min'              => 'Debe haber al menos 1 beneficiario.',
         ];
     }
 
@@ -56,7 +58,6 @@ class ApoyoSocialController extends Controller
     {
         $query = ApoyoSocial::with('ejidatario');
 
-        // Concepto / Tipo de apoyo o descripción
         if ($request->filled('concepto')) {
             $query->where(function ($q) use ($request) {
                 $q->where('tipo_apoyo',  'like', '%' . $request->concepto . '%')
@@ -64,26 +65,26 @@ class ApoyoSocialController extends Controller
             });
         }
 
-        // Ejidatario beneficiado (busca en nombre, apellido paterno o materno)
         if ($request->filled('beneficiario')) {
             $query->whereHas('ejidatario', function ($q) use ($request) {
-                $q->where('nombre',          'like', '%' . $request->beneficiario . '%')
+                $q->where('nombre',           'like', '%' . $request->beneficiario . '%')
                   ->orWhere('apellidoPaterno', 'like', '%' . $request->beneficiario . '%')
                   ->orWhere('apellidoMaterno', 'like', '%' . $request->beneficiario . '%');
             });
         }
 
-        // Representante
         if ($request->filled('representante')) {
             $query->where('nombre_representante', 'like', '%' . $request->representante . '%');
         }
 
-        // Dependencia
+        if ($request->filled('rep_dependencia')) {
+            $query->where('representante_dependencia', 'like', '%' . $request->rep_dependencia . '%');
+        }
+
         if ($request->filled('dependencia')) {
             $query->where('dependencia', 'like', '%' . $request->dependencia . '%');
         }
 
-        // Rango de fechas
         if ($request->filled('fecha_desde')) {
             $query->where('fecha_entrega', '>=', $request->fecha_desde);
         }
@@ -91,7 +92,6 @@ class ApoyoSocialController extends Controller
             $query->where('fecha_entrega', '<=', $request->fecha_hasta);
         }
 
-        // Estatus
         if ($request->filled('estatus')) {
             $query->where('estatus', $request->estatus);
         }
@@ -101,7 +101,6 @@ class ApoyoSocialController extends Controller
         return view('ListViews.listadoApoyos', compact('apoyos'));
     }
 
-    // ── Create ────────────────────────────────────────────────────────────────
     public function create()
     {
         $ejidatarios = Ejidatario::where('idEstatus', 1)
@@ -111,7 +110,6 @@ class ApoyoSocialController extends Controller
         return view('RegisterViews.nuevoApoyo', compact('ejidatarios'));
     }
 
-    // ── Store ─────────────────────────────────────────────────────────────────
     public function store(Request $request)
     {
         $validated = $request->validate($this->rules(), $this->messages());
@@ -123,7 +121,6 @@ class ApoyoSocialController extends Controller
             ->with('success', 'Apoyo registrado correctamente.');
     }
 
-    // ── Edit ──────────────────────────────────────────────────────────────────
     public function edit($id)
     {
         $apoyo       = ApoyoSocial::findOrFail($id);
@@ -134,7 +131,6 @@ class ApoyoSocialController extends Controller
         return view('EditViews.editarApoyo', compact('apoyo', 'ejidatarios'));
     }
 
-    // ── Update ────────────────────────────────────────────────────────────────
     public function update(Request $request, $id)
     {
         $apoyo     = ApoyoSocial::findOrFail($id);
@@ -147,7 +143,6 @@ class ApoyoSocialController extends Controller
             ->with('success', 'Apoyo actualizado correctamente.');
     }
 
-    // ── Reporte ───────────────────────────────────────────────────────────────
     public function reporte(Request $request)
     {
         $query = ApoyoSocial::with('ejidatario');
@@ -162,7 +157,6 @@ class ApoyoSocialController extends Controller
         return view('ReportViews.reporteApoyos', compact('apoyos'));
     }
 
-    // ── Destroy ───────────────────────────────────────────────────────────────
     public function destroy($id)
     {
         ApoyoSocial::findOrFail($id)->delete();

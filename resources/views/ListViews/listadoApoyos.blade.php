@@ -34,10 +34,10 @@
                 </div>
             @endif
 
-            {{-- ── Buscador ── --}}
+            {{-- Buscador --}}
             <div class="card bg-light border-0 mb-3">
                 <div class="card-body pb-2">
-                    <form method="GET" action="{{ route('apoyos.index') }}" id="formBusqueda">
+                    <form method="GET" action="{{ route('apoyos.index') }}">
                         <div class="row g-2 align-items-end">
 
                             <div class="col-md-3">
@@ -55,10 +55,17 @@
                             </div>
 
                             <div class="col-md-3">
-                                <label class="form-label small fw-semibold mb-1">Representante</label>
+                                <label class="form-label small fw-semibold mb-1">Rep. Comisaría</label>
                                 <input type="text" name="representante" class="form-control form-control-sm"
-                                       placeholder="Nombre del representante..."
+                                       placeholder="Representante de la comisaría..."
                                        value="{{ request('representante') }}">
+                            </div>
+
+                            <div class="col-md-3">
+                                <label class="form-label small fw-semibold mb-1">Rep. Dependencia</label>
+                                <input type="text" name="rep_dependencia" class="form-control form-control-sm"
+                                       placeholder="Funcionario de la dependencia..."
+                                       value="{{ request('rep_dependencia') }}">
                             </div>
 
                             <div class="col-md-3">
@@ -68,19 +75,19 @@
                                        value="{{ request('dependencia') }}">
                             </div>
 
-                            <div class="col-md-3">
+                            <div class="col-md-2">
                                 <label class="form-label small fw-semibold mb-1">Fecha desde</label>
                                 <input type="date" name="fecha_desde" class="form-control form-control-sm"
                                        value="{{ request('fecha_desde') }}">
                             </div>
 
-                            <div class="col-md-3">
+                            <div class="col-md-2">
                                 <label class="form-label small fw-semibold mb-1">Fecha hasta</label>
                                 <input type="date" name="fecha_hasta" class="form-control form-control-sm"
                                        value="{{ request('fecha_hasta') }}">
                             </div>
 
-                            <div class="col-md-3">
+                            <div class="col-md-2">
                                 <label class="form-label small fw-semibold mb-1">Estatus</label>
                                 <select name="estatus" class="form-select form-select-sm">
                                     <option value="">-- Todos --</option>
@@ -103,7 +110,6 @@
                     </form>
                 </div>
             </div>
-            {{-- ── /Buscador ── --}}
 
             <div class="table-responsive">
                 <table class="table table-hover table-bordered align-middle">
@@ -112,12 +118,13 @@
                             <th>#</th>
                             <th>Ejidatario</th>
                             <th>Tipo de Apoyo</th>
-                            <th>Concepto / Descripción</th>
+                            <th>Concepto</th>
                             <th>Dependencia</th>
+                            <th>Rep. Dependencia</th>
                             <th>Monto</th>
                             <th>Cantidad</th>
                             <th>Fecha Entrega</th>
-                            <th>Representante</th>
+                            <th>Rep. Comisaría</th>
                             <th>Beneficiarios</th>
                             <th>Estatus</th>
                             <th>Acciones</th>
@@ -139,6 +146,7 @@
                             <td>{{ $a->tipo_apoyo }}</td>
                             <td>{{ $a->descripcion ?? '—' }}</td>
                             <td>{{ $a->dependencia ?? '—' }}</td>
+                            <td>{{ $a->representante_dependencia ?? '—' }}</td>
                             <td>
                                 @if($a->monto > 0)
                                     ${{ number_format($a->monto, 2) }}
@@ -185,7 +193,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="12" class="text-center text-muted py-4">
+                            <td colspan="13" class="text-center text-muted py-4">
                                 No hay apoyos registrados.
                             </td>
                         </tr>
@@ -194,12 +202,11 @@
                 </table>
             </div>
 
-            @if($apoyos->isEmpty())
-            @else
+            @unless($apoyos->isEmpty())
                 <p class="text-muted small text-end mb-0">
                     {{ $apoyos->count() }} registro(s) encontrado(s)
                 </p>
-            @endif
+            @endunless
 
         </div>
     </div>

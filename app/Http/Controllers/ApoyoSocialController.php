@@ -69,14 +69,18 @@ class ApoyoSocialController extends Controller
         return view('RegisterViews.nuevoApoyo', compact('ejidatarios'));
     }
 
-    public function store(Request $request)
-    {
-        $validated = $request->validate($this->rules(), $this->messages());
-        ApoyoSocial::create($validated);
+public function store(Request $request)
+{
+    $validated = $request->validate($this->rules(), $this->messages());
 
-        return redirect()->route('apoyos.index')
-            ->with('success', 'Apoyo registrado correctamente.');
-    }
+    // Evita NULL en columna NOT NULL cuando el apoyo es en especie
+    $validated['monto'] = $validated['monto'] ?? 0;
+
+    ApoyoSocial::create($validated);
+
+    return redirect()->route('apoyos.index')
+        ->with('success', 'Apoyo registrado correctamente.');
+}
 
     public function edit($id)
     {

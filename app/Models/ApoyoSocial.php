@@ -20,6 +20,7 @@ class ApoyoSocial extends Model
         'fecha_entrega',
         'ciclo',
         'dependencia',
+        'representante_dependencia', // ← campo nuevo
         'nombre_representante',
         'num_beneficiarios',
         'estatus',

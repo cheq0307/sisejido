@@ -28,20 +28,15 @@
 <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
 <div class="container-fluid">
 <div class="row">
-<div class="col-md-12 p-4">
+<div class="col-md-10 p-4">
 
     <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
         <h1 class="h2 text-ejidal">
             <i class="fas fa-hand-holding-heart me-2"></i>Reporte de Apoyos Sociales
         </h1>
-        <div class="d-flex gap-2 no-print">
-            <a href="{{ route('apoyos.index') }}" class="btn btn-secondary btn-sm">
-                <i class="fas fa-arrow-left me-1"></i> Regresar
-            </a>
-            <button class="btn btn-ejidal btn-sm" onclick="imprimirReporte()">
-                <i class="fas fa-file-pdf me-1"></i> Generar PDF
-            </button>
-        </div>
+        <button class="btn btn-ejidal no-print" onclick="imprimirReporte()">
+            <i class="fas fa-file-pdf me-1"></i> Generar PDF
+        </button>
     </div>
 
     {{-- Filtros --}}
@@ -56,7 +51,6 @@
                         <option value="pendiente"  {{ request('estatus') == 'pendiente'  ? 'selected' : '' }}>Pendiente</option>
                         <option value="cancelado"  {{ request('estatus') == 'cancelado'  ? 'selected' : '' }}>Cancelado</option>
                         <option value="aprobado"   {{ request('estatus') == 'aprobado'   ? 'selected' : '' }}>Aprobado</option>
-
                     </select>
                 </div>
                 <div class="col-md-3">
@@ -88,15 +82,15 @@
 
     {{-- Resumen --}}
     <div class="row g-3 mb-4 no-print">
-        <div class="col-md-3">
+        <div class="col-md-2">
             <div class="card text-center border-0 shadow-sm">
                 <div class="card-body py-3">
                     <div class="h4 text-ejidal mb-0">{{ $apoyos->count() }}</div>
-                    <small class="text-muted">Total registros</small>
+                    <small class="text-muted">Total</small>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-2">
             <div class="card text-center border-0 shadow-sm">
                 <div class="card-body py-3">
                     <div class="h4 text-success mb-0">{{ $apoyos->where('estatus','entregado')->count() }}</div>
@@ -104,7 +98,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-2">
             <div class="card text-center border-0 shadow-sm">
                 <div class="card-body py-3">
                     <div class="h4 text-warning mb-0">{{ $apoyos->where('estatus','pendiente')->count() }}</div>
@@ -112,12 +106,26 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-2">
             <div class="card text-center border-0 shadow-sm">
                 <div class="card-body py-3">
-                    <div class="h4 text-ejidal mb-0">
-                        ${{ number_format($apoyos->sum('monto'), 2) }}
-                    </div>
+                    <div class="h4 text-primary mb-0">{{ $apoyos->where('estatus','aprobado')->count() }}</div>
+                    <small class="text-muted">Aprobados</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card text-center border-0 shadow-sm">
+                <div class="card-body py-3">
+                    <div class="h4 text-danger mb-0">{{ $apoyos->where('estatus','cancelado')->count() }}</div>
+                    <small class="text-muted">Cancelados</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card text-center border-0 shadow-sm">
+                <div class="card-body py-3">
+                    <div class="h4 text-ejidal mb-0">${{ number_format($apoyos->sum('monto'), 2) }}</div>
                     <small class="text-muted">Monto total</small>
                 </div>
             </div>
@@ -125,18 +133,22 @@
     </div>
 
     {{-- Tabla --}}
-    <table id="tablaApoyos" class="table table-bordered table-hover align-middle">
+    <table id="tablaApoyos" class="table table-bordered align-middle">
         <thead class="table-dark">
             <tr>
                 <th>#</th>
                 <th>Ejidatario</th>
                 <th>Tipo de Apoyo</th>
+                <th>Descripción</th>
                 <th>Dependencia</th>
+                <th>Rep. Dependencia</th>
                 <th>Monto</th>
                 <th>Cantidad</th>
                 <th>Fecha Entrega</th>
+                <th>Ciclo</th>
                 <th>Representante</th>
                 <th>Beneficiarios</th>
+                <th>Observaciones</th>
                 <th>Estatus</th>
             </tr>
         </thead>
@@ -154,27 +166,35 @@
                     @endif
                 </td>
                 <td>{{ $a->tipo_apoyo }}</td>
+                <td>{{ $a->descripcion ?? '—' }}</td>
                 <td>{{ $a->dependencia ?? '—' }}</td>
+                <td>{{ $a->representante_dependencia ?? '—' }}</td>
                 <td>
                     @if($a->monto > 0)
                         ${{ number_format($a->monto, 2) }}
-                    @else —
+                    @else
+                        —
                     @endif
                 </td>
                 <td>
                     @if($a->cantidad > 0)
                         {{ $a->cantidad }} {{ $a->unidad_medida }}
-                    @else —
+                    @else
+                        —
                     @endif
                 </td>
                 <td>{{ \Carbon\Carbon::parse($a->fecha_entrega)->format('d/m/Y') }}</td>
-                <td>{{ $a->nombre_representante }}</td>
+                <td>{{ $a->ciclo ?? '—' }}</td>
+                <td>{{ $a->nombre_representante ?? '—' }}</td>
                 <td class="text-center">{{ $a->num_beneficiarios }}</td>
+                <td>{{ $a->observaciones ?? '—' }}</td>
                 <td class="text-center">
                     @if($a->estatus === 'entregado')
                         <span class="badge bg-success">Entregado</span>
                     @elseif($a->estatus === 'pendiente')
                         <span class="badge bg-warning text-dark">Pendiente</span>
+                    @elseif($a->estatus === 'aprobado')
+                        <span class="badge bg-primary">Aprobado</span>
                     @else
                         <span class="badge bg-danger">Cancelado</span>
                     @endif
@@ -182,7 +202,7 @@
             </tr>
             @empty
             <tr>
-                <td colspan="10" class="text-center text-muted py-4">
+                <td colspan="14" class="text-center text-muted py-4">
                     No hay apoyos registrados con los filtros seleccionados.
                 </td>
             </tr>
@@ -191,12 +211,14 @@
         @if($apoyos->count() > 0)
         <tfoot class="table-secondary fw-bold">
             <tr>
-                <td colspan="4" class="text-end">Totales:</td>
+                <td colspan="6" class="text-end">Totales:</td>
                 <td>${{ number_format($apoyos->sum('monto'), 2) }}</td>
                 <td>—</td>
                 <td>—</td>
                 <td>—</td>
+                <td>—</td>
                 <td class="text-center">{{ $apoyos->sum('num_beneficiarios') }}</td>
+                <td>—</td>
                 <td>—</td>
             </tr>
         </tfoot>
